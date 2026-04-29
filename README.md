@@ -36,28 +36,19 @@ That foundation made containers possible long before Docker. However, containers
 
 Virtualization is a process lets you run virtual instances of computer systems on top of physical hardware. It enables multiple operating systems to run concurrently on the same machine.
 
-### Virtual Machines (VMs)
-A Virtual Machine (VM) is a software based computer that runs inside a physical host. A VM emulates a full physical machine, runs its own guest operating system, and executes applications independently.
+A Virtual Machine (VM) is a software-based computer that runs inside a physical machine. It emulates a complete system, including hardware, allowing it to run its own operating system and applications independently from the host.
+VM is managed by a hypervisor, which is a software layer responsible for creating and running virtual machines. There are two types of hypervisors: bare-metal hypervisor : runs directly on the physical hardware, Hosted hypervisor : runs on top of an existing operating system
+Common tools include VirtualBox and VMware.
 
-    - Typical tools: VirtualBox, VMware.
-    - Hypervisor (brief): the hypervisor is the software layer that creates and manages VMs. Type 1 hypervisors run directly on     hardware (bare metal); Type 2 run on top of a host OS.
-
-### Containers
 A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process.
-
 
 For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
 
 
 ## "VMs Relaxed  Then Containers Threw a House Party" : The Rise of Containers
 
-We used to live in a world where every time the business wanted a new application,
-we had to buy a brand-new server for it. Then VMware came along and enabled
-IT departments to drive more value out of new and existing company IT assets.
-But as good as VMware and the VM model is, it’s not perfect. Following the
-success of VMware and hypervisors came a newer more efficient and lightweight
-virtualization technology called containers. But containers were initially hard to
-implement and were only found in the data centers of web giants that had Linux
-kernel engineers on staff. Then along came Docker Inc. and suddenly container
-virtualization technologies were available to the masses.
+We used to live in a world where every time the business wanted a new application, we had to buy a brand-new server for it. 
+Then VMware came along and enabled IT departments to drive more value out of new and existing company IT assets.
+But as good as VMware and the VM model is, it’s not perfect. Following the success of VMware and hypervisors came a newer more efficient and lightweight virtualization technology called containers. But containers were initially hard to implement and were only found in the data centers of web giants that had Linux kernel engineers on staff. 
+Then along came Docker Inc. and suddenly container virtualization technologies were available to the masses.
 Speaking of Docker… let’s go find who, what, and why Docker is!
