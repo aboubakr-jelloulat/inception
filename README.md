@@ -69,7 +69,7 @@ Docker is an open-source platform for packaging applications into containers: is
 
 Docker uses a client-server architecture. The Docker client talks to the Docker daemon, which does the heavy lifting of building, running, and distributing your Docker containers
 ![Docker architecture diagram — containers, engine, and host](https://docs.docker.com/get-started/images/docker-architecture.webp)
-*Figure: Docker architecture — engine, images, containers, and host OS.*
+*Figure: Docker architecture*
 
 
 ### The Docker client
@@ -82,3 +82,13 @@ The Docker daemon (dockerd) listens for Docker API requests and manages Docker o
 A Docker registry stores Docker images. Docker Hub is a public registry that anyone can use, and Docker looks for images on Docker Hub by default. You can even run your own private registry.
 
 When you use the docker pull or docker run commands, Docker pulls the required images from your configured registry. When you use the docker push command, Docker pushes your image to your configured registry.
+
+## Docker Low-level Architecture
+
+![Docker architecture diagram — engine, images, containers, and host](https://docs.docker.com/get-started/images/docker-architecture.webp)
+*Figure: Docker architecture — engine, images, containers, and host OS.*
+
+![Diagram 2](https://i.sstatic.net/tZwUP.png)
+
+![Diagram 3](https://i.sstatic.net/KanIf.jpg)
+
