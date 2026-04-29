@@ -36,13 +36,13 @@ That foundation made containers possible long before Docker. However, containers
 
 Virtualization is a process lets you run virtual instances of computer systems on top of physical hardware. It enables multiple operating systems to run concurrently on the same machine.
 
-# Virtual Machines (VMs)
+### Virtual Machines (VMs)
 A Virtual Machine (VM) is a software based computer that runs inside a physical host. A VM emulates a full physical machine, runs its own guest operating system, and executes applications independently.
 
     - Typical tools: VirtualBox, VMware.
     - Hypervisor (brief): the hypervisor is the software layer that creates and manages VMs. Type 1 hypervisors run directly on     hardware (bare metal); Type 2 run on top of a host OS.
 
-# Containers
+### Containers
 A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process.
 
 
