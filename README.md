@@ -40,7 +40,7 @@ A Virtual Machine (VM) is a software-based computer that runs inside a physical 
 VM is managed by a hypervisor, which is a software layer responsible for creating and running virtual machines. There are two types of hypervisors: bare-metal hypervisor : runs directly on the physical hardware, Hosted hypervisor : runs on top of an existing operating system
 Common tools include VirtualBox and VMware.
 
-A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process.
+A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process. Virtualize the Operating System. They share the host system’s kernel and isolate the application processes from the rest of the system. This makes them lightweight and near instant to start.
 
 For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
 
@@ -62,4 +62,23 @@ When somebody says “Docker” they can be referring to any of at least three t
 2. Docker the container runtime and orchestration technology  
 3. Docker the open source project (this is now called Moby)  
 
-If you’re going to make it in the container world, you’ll need to know a bit about all three.
+Docker is an open-source platform for packaging applications into containers: isolated environments that include everything the app needs to run, including code, dependencies, and configuration. The core problem it solves is environment inconsistency. A script that works on your laptop breaks on a server because of a different Python version or a missing library. Docker greatly reduces that inconsistency
+
+
+## Docker architecture
+
+Docker uses a client-server architecture. The Docker client talks to the Docker daemon, which does the heavy lifting of building, running, and distributing your Docker containers
+![Docker architecture diagram — containers, engine, and host](https://docs.docker.com/get-started/images/docker-architecture.webp)
+*Figure: Docker architecture — engine, images, containers, and host OS.*
+
+
+### The Docker client
+The Docker client (docker) is the primary way that many Docker users interact with Docker. When you use commands such as docker run, the client sends these commands to dockerd.
+
+### The Docker daemon
+The Docker daemon (dockerd) listens for Docker API requests and manages Docker objects such as images, containers, networks, and volumes. A daemon can also communicate with other daemons to manage Docker services.
+
+### Docker registries
+A Docker registry stores Docker images. Docker Hub is a public registry that anyone can use, and Docker looks for images on Docker Hub by default. You can even run your own private registry.
+
+When you use the docker pull or docker run commands, Docker pulls the required images from your configured registry. When you use the docker push command, Docker pushes your image to your configured registry.
