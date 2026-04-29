@@ -118,22 +118,35 @@ The low‑level OCI runtime that actually creates and runs the container process
 6. containerd spawns a containerd‑shim for that container so the container can keep running even if containerd restarts.  
 7. runc uses kernel namespaces, cgroups, and mounts to instantiate the container process.
 
-### One‑line summary
-the docker request flows over until the container is created.
 
-A user uses the docker CLI to execute a command
-docker container run -it --name <NAME> <IMAGE>:<TAG>
-The docker client then POSTs the API payload to the correct API docker deamon’s endpoint
-Docker deamon receives instructions and calls containerd to start a new container
-containerd creates an OCI bundle from the Docker image (like we did above in the section “2. runc”)
-containerd tells runc to create a container using the OCI bundle
-runc interfaces with the OS kernel to create a container
-Container process starts as a child process
-runc exits once the container starts
-shim takes over the child process and becomes it’s parent
-Container is running!
-
-For more deep about docker component see: https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5
+## docker request flows
 
 ![Diagram 2](https://i.sstatic.net/KanIf.jpg)
+
+The docker request flows over until the container is created.
+
+A user uses the docker CLI to execute a command  
+docker container run -it --name <NAME> <IMAGE>:<TAG>  
+
+The docker client then POSTs the API payload to the correct API docker deamon’s endpoint  
+
+Docker deamon receives instructions and calls containerd to start a new container  
+
+containerd creates an OCI bundle from the Docker image (like we did above in the section “2. runc”)  
+
+containerd tells runc to create a container using the OCI bundle  
+
+runc interfaces with the OS kernel to create a container  
+
+Container process starts as a child process  
+
+runc exits once the container starts  
+
+shim takes over the child process and becomes it’s parent  
+
+Container is running!  
+
+_for more deep about docker component see : https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5_
+
+
 
