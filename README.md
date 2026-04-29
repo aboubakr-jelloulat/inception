@@ -83,12 +83,57 @@ A Docker registry stores Docker images. Docker Hub is a public registry that any
 
 When you use the docker pull or docker run commands, Docker pulls the required images from your configured registry. When you use the docker push command, Docker pushes your image to your configured registry.
 
-## Docker Low-level Architecture
+## Docker components
 
-![Docker architecture diagram — engine, images, containers, and host](https://docs.docker.com/get-started/images/docker-architecture.webp)
-*Figure: Docker architecture — engine, images, containers, and host OS.*
+Docker originally used a monolithic architecture and relied on LXC (Linux Containers) to create lightweight container environments. As it evolved, Docker adopted a more modular architecture, replacing LXC with its own solution, libcontainer, to improve flexibility and cross-platform support. Today, Docker architecture is broken into five components: dockerCLI, dockerd, containerd,containerd-shim and runc
 
-![Diagram 2](https://i.sstatic.net/tZwUP.png)
+![Diagram 1](https://i.sstatic.net/tZwUP.png)
 
-![Diagram 3](https://i.sstatic.net/KanIf.jpg)
+
+### Docker CLI (docker)
+The command-line client users run (docker run, docker build). It composes user intent into API calls and requests to the Docker daemon. The CLI is a user facing tool for building images, running containers, managing networks/volumes, and interacting with registries.
+
+### dockerd (Docker daemon / engine)
+The long‑running service that implements the Docker API. It receives requests from the CLI (or other clients), manages images, networks, volumes, and coordinates higher‑level container lifecycle actions. dockerd talks to lower‑level runtimes (via containerd), stores image layers, and enforces Docker’s policies and configurations.
+
+### containerd
+A dedicated daemon that manages container lifecycle primitives: pulling/pushing images, storing image content, creating and managing snapshots, and supervising container execution. containerd provides a stable, focused API for runtimes and higher‑level systems (like dockerd) and splits the heavy lifting out of the Docker daemon.
+
+### containerd‑shim
+A small per‑container process launched by containerd that stays running after the container process starts. The shim’s responsibilities:
+- Reparents the container process so the container can run independently of containerd (so containerd can restart without killing containers).  
+- Streams container stdio and exit status back to containerd.  
+- Keeps a minimal state so the runtime can exit while the container continues running.  
+In short: the shim isolates containerd from the container process lifecycle.
+
+### runc
+The low‑level OCI runtime that actually creates and runs the container process using kernel primitives (namespaces, cgroups, chroot/mounts). runc implements the OCI runtime spec: it takes an on‑disk bundle (rootfs + config.json) and uses Linux kernel features to start the process inside the container. containerd typically invokes runc (or another OCI runtime) to perform the final syscall‑level work.
+
+### How they work together
+1. You run a Docker CLI command.  
+2. CLI calls dockerd’s API.  
+3. dockerd delegates image/content and runtime tasks to containerd.  
+4. containerd prepares the image and requests an OCI runtime to start the container.  
+5. containerd invokes runc to create the container process.  
+6. containerd spawns a containerd‑shim for that container so the container can keep running even if containerd restarts.  
+7. runc uses kernel namespaces, cgroups, and mounts to instantiate the container process.
+
+### One‑line summary
+the docker request flows over until the container is created.
+
+A user uses the docker CLI to execute a command
+docker container run -it --name <NAME> <IMAGE>:<TAG>
+The docker client then POSTs the API payload to the correct API docker deamon’s endpoint
+Docker deamon receives instructions and calls containerd to start a new container
+containerd creates an OCI bundle from the Docker image (like we did above in the section “2. runc”)
+containerd tells runc to create a container using the OCI bundle
+runc interfaces with the OS kernel to create a container
+Container process starts as a child process
+runc exits once the container starts
+shim takes over the child process and becomes it’s parent
+Container is running!
+
+For more deep about docker component see: https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5
+
+![Diagram 2](https://i.sstatic.net/KanIf.jpg)
 
