@@ -1,4 +1,4 @@
-# The bad old days
+## The bad old days
 
 Applications run businesses. If applications break, businesses break. Sometimes they even go bust. These statements get truer every day.
 
@@ -52,3 +52,15 @@ Then VMware came along and enabled IT departments to drive more value out of new
 But as good as VMware and the VM model is, it’s not perfect. Following the success of VMware and hypervisors came a newer more efficient and lightweight virtualization technology called containers. But containers were initially hard to implement and were only found in the data centers of web giants that had Linux kernel engineers on staff. 
 Then along came Docker Inc. and suddenly container virtualization technologies were available to the masses.
 Speaking of Docker… let’s go find who, what, and why Docker is!
+
+
+## Hello Docker!
+
+When somebody says “Docker” they can be referring to any of at least three
+things:
+    1. Docker, Inc. the company
+    2. Docker the container runtime and orchestration technology
+    3. Docker the open source project (this is now called Moby)
+    
+If you’re going to make it in the container world, you’ll need to know a bit about all
+three.
