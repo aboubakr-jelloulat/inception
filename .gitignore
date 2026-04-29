@@ -1,0 +1,9 @@
+secrets/*
+
+srcs/.env
+
+# docker
+*.log
+*.pid
+
+.DS_Store
