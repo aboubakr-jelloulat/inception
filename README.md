@@ -56,11 +56,10 @@ Speaking of Docker… let’s go find who, what, and why Docker is!
 
 ## Hello Docker!
 
-When somebody says “Docker” they can be referring to any of at least three
-things:
-    1. Docker, Inc. the company
-    2. Docker the container runtime and orchestration technology
-    3. Docker the open source project (this is now called Moby)
-    
-If you’re going to make it in the container world, you’ll need to know a bit about all
-three.
+When somebody says “Docker” they can be referring to any of at least three things:
+
+1. Docker, Inc. the company  
+2. Docker the container runtime and orchestration technology  
+3. Docker the open source project (this is now called Moby)  
+
+If you’re going to make it in the container world, you’ll need to know a bit about all three.
