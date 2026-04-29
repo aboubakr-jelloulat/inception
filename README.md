@@ -42,7 +42,8 @@ Common tools include VirtualBox and VMware.
 
 A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process. Virtualize the Operating System. They share the host system’s kernel and isolate the application processes from the rest of the system. This makes them lightweight and near instant to start.
 
-For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
+_For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
+
 
 
 ## "VMs Relaxed  Then Containers Threw a House Party" : The Rise of Containers
