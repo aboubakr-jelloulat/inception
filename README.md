@@ -44,7 +44,7 @@ That foundation made containers possible long before Docker. However, containers
 ## Containers vs VMs
 
 
-![ContainersVsVMs] (https://aqueducttech.com/wp-content/uploads/2021/02/Cloud_VM_Container-1.png)
+![ContainersVsVMs] (https://blogs.bmc.com/wp-content/uploads/2018/07/containers-vs-virtual-machines.jpg)
 
 Virtualization is a process lets you run virtual instances of computer systems on top of physical hardware. It enables multiple operating systems to run concurrently on the same machine.
 
