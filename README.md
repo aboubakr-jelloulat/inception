@@ -152,7 +152,8 @@ _for more deep about docker component see : https://medium.com/@yeldos/docker-en
 
 ## Container Image
 
-![Diagram 2](_https://miro.medium.com/v2/resize:fit:4800/format:webp/1*Jl97IVi_he8VdHvX9EbWcA.png)
+
+![Diagram 2](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*Jl97IVi_he8VdHvX9EbWcA.png)
 
 A container image is an immutable (unchangeable) file that contains everything needed to run an application: code, binaries, libraries, and configurations. It ensures the application runs consistently across different environments.
 
