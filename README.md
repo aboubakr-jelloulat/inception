@@ -44,8 +44,6 @@ That foundation made containers possible long before Docker. However, containers
 ## Containers vs VMs
 
 
-![ContainersVsVMs] (https://blogs.bmc.com/wp-content/uploads/2018/07/containers-vs-virtual-machines.jpg)
-
 Virtualization is a process lets you run virtual instances of computer systems on top of physical hardware. It enables multiple operating systems to run concurrently on the same machine.
 
 A Virtual Machine (VM) is a software-based computer that runs inside a physical machine. It emulates a complete system, including hardware, allowing it to run its own operating system and applications independently from the host.
@@ -381,7 +379,7 @@ python3 /app/app.py
 
 
 ## Docker containers
-![DockerContainers] (https://www.tonlexing.com/wp-content/uploads/2026/04/How-the-Strait-of-Hormuz-Situation-Is-Affecting-Shipping-From-China-in-2026.jpg)
+![DockerContainers] (https://www.theinfostride.com/wp-content/uploads/2025/07/Containers.jpg)
 
 
 A container is the runtime instance of an image. In the same way that we can start a virtual machine (VM) from a virtual machine template, we start one or more containers from a single image. 
