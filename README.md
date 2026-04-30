@@ -226,7 +226,7 @@ Each layer is immutable and stacked on top of the previous ones to form the fina
 
 Image metadata does not affect the filesystem. Instead, it defines how the image behaves when it is run as a container. Define runtime behavior Contains configuration and execution settings
 
-### What creates image metadata?
+#### What creates image metadata?
 
 Common metadata instructions include:
 
@@ -238,7 +238,7 @@ Common metadata instructions include:
 - `USER`
 - `LABEL`
 
-### What does metadata contain?
+#### What does metadata contain?
 
 Metadata defines:
 
@@ -249,7 +249,6 @@ Metadata defines:
 - Exposed network ports (`EXPOSE`)
 - Additional descriptive information (`LABEL`)
 
-### Example
 
 ```dockerfile
 CMD ["python3", "/app/app.py"]
@@ -265,4 +264,75 @@ RUN apt-get update
 RUN apt-get install -y python3
 COPY app.py /app/app.py
 CMD ["python3", "/app/app.py"]
+```
+
+
+#### 1. Base Layer — `FROM ubuntu:22.04`
+
+This instruction defines the starting point of the image. It pulls a prebuilt image based on Ubuntu 22.04.
+
+This base layer already contains a complete minimal Linux filesystem, including:
+
+- Core system directories (`/bin`, `/usr`, `/lib`, ...)
+- Essential system libraries (such as `libc`)
+- Basic command-line utilities (`bash`, `ls`, `cat`, ...)
+- Package management tools (`apt`)
+
+Everything that follows builds on top of this foundation.
+
+---
+
+#### 2. Update Package Index — `RUN apt-get update`
+
+This step creates a new layer that updates the package manager’s index.
+
+What this layer adds:
+
+- Updated package lists stored under `/var/lib/apt/lists/`
+- Metadata required for installing software
+
+No new software is installed yet; this layer only prepares the system for installation.
+
+---
+
+#### 3. Install Python — `RUN apt-get install -y python3`
+
+This layer installs Python and its dependencies.
+
+What this layer contains:
+
+- Python binary (typically `/usr/bin/python3`)
+- Standard libraries for Python
+- Shared libraries required by Python
+- Additional system packages pulled as dependencies
+
+This is usually one of the heavier layers because it introduces multiple files and dependencies.
+
+---
+
+#### 4. Add Application Code — `COPY app.py /app/app.py`
+
+This instruction copies your application code into the image.
+
+What this layer contains:
+
+- A new directory `/app` (if it does not already exist)
+- The file `app.py` placed at `/app/app.py`
+
+This layer is typically small, but it is the one that changes most frequently during development.
+
+---
+
+#### 5. Runtime Metadata — `CMD ["python3", "/app/app.py"]`
+
+This instruction does not create a filesystem layer.
+
+Instead, it defines metadata for the image:
+
+- The default command to run when a container starts from this image
+
+In this case, it tells Docker to execute:
+
+```bash
+python3 /app/app.py
 ```
