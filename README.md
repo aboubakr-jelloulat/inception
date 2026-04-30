@@ -379,7 +379,7 @@ python3 /app/app.py
 
 
 ## Docker containers
-![DockerContainers] (https://www.theinfostride.com/wp-content/uploads/2025/07/Containers.jpg)
+![DockerContainers] (https://scspa.com/wp-content/uploads/img-7365-epurcell-scaled.jpg)
 
 
 A container is the runtime instance of an image. In the same way that we can start a virtual machine (VM) from a virtual machine template, we start one or more containers from a single image. 
