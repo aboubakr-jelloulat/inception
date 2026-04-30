@@ -153,7 +153,7 @@ _for more deep about docker component see : https://medium.com/@yeldos/docker-en
 ## Container Image
 
 
-![Diagram 2](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*Jl97IVi_he8VdHvX9EbWcA.png)
+![Diagram 2](https://i.pinimg.com/736x/df/b2/4f/dfb24f83e60e7488c8b50456ad34e4db.jpg)
 
 A container image is an immutable (unchangeable) file that contains everything needed to run an application: code, binaries, libraries, packages and configurations. It ensures the application runs consistently across different environments.
 
@@ -161,7 +161,35 @@ It is built from layered file systems on top of a base image, which allows reuse
 
 You can think of a container image as a template (like a class or a VM template) used to create running containers.
 
+
+## What is a Dockerfile?
+
+A Dockerfile is a simple text file that contains a set of instructions used to build a Docker image. It defines everything needed to assemble the image: the base system, dependencies, application code, and runtime configuration.
+
+a Dockerfile acts as a **blueprint** for your image. Instead of manually setting up an environment, you describe the steps once, and Docker reproduces them consistently every time.
+
+
+### Basic Structure of a Dockerfile
+
+A Dockerfile is composed of a sequence of instructions. Each instruction performs a specific action and usually creates a new layer in the image.
+
+Common instructions include:
+
+- `FROM` – defines the base image
+- `RUN` – executes commands during the build process
+- `COPY` / `ADD` – copies files into the image
+- `CMD` – specifies the default command to run
+- `ENTRYPOINT` – defines the main executable
+- `ENV` – sets environment variables
+- `WORKDIR` – sets the working directory
+
+
+
 ## What Are Docker Image Layers?
+
+
+![Diagram 2](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*Jl97IVi_he8VdHvX9EbWcA.png)
+
 
 A Docker image is not a single monolithic file. It is built as a sequence of **layers**, each representing a set of changes applied to a filesystem. These layers are stacked on top of one another to form the final image.
 
