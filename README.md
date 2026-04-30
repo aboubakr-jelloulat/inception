@@ -155,8 +155,46 @@ _for more deep about docker component see : https://medium.com/@yeldos/docker-en
 
 ![Diagram 2](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*Jl97IVi_he8VdHvX9EbWcA.png)
 
-A container image is an immutable (unchangeable) file that contains everything needed to run an application: code, binaries, libraries, and configurations. It ensures the application runs consistently across different environments.
+A container image is an immutable (unchangeable) file that contains everything needed to run an application: code, binaries, libraries, packages and configurations. It ensures the application runs consistently across different environments.
 
 It is built from layered file systems on top of a base image, which allows reuse and helps reduce size and improve performance.
 
 You can think of a container image as a template (like a class or a VM template) used to create running containers.
+
+## What Are Docker Image Layers?
+
+A Docker image is not a single monolithic file. It is built as a sequence of **layers**, each representing a set of changes applied to a filesystem. These layers are stacked on top of one another to form the final image.
+
+A useful way to think about a layer is as a **filesystem diff**: it contains only what changed compared to the previous layer. This could include adding files, modifying existing ones, or deleting them.
+
+Each instruction in a Dockerfile typically creates a new layer. Because layers are immutable and cached, Docker can reuse them across builds, which makes image construction efficient and fast.
+
+---
+
+### What Does a Layer Contain?
+
+A layer does not have a fixed type of content. Instead, it can include anything that can exist in a filesystem:
+
+- Application source code
+- Compiled binaries
+- Installed packages and their dependencies
+- Configuration files
+- System libraries
+- File deletions or modifications
+
+In other words, a layer reflects the *result* of executing a single Dockerfile instruction.
+
+It is also important to distinguish between **filesystem layers** and **image metadata**. Some instructions (like `RUN` or `COPY`) create filesystem layers, while others (like `CMD`) define metadata that tells Docker how to run the container.
+
+---
+
+### Breaking Down an Image Layer by Layer
+
+Consider the following Dockerfile:
+
+```dockerfile
+FROM ubuntu:22.04
+RUN apt-get update
+RUN apt-get install -y python3
+COPY app.py /app/app.py
+CMD ["python3", "/app/app.py"]
