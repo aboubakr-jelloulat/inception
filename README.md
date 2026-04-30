@@ -169,7 +169,6 @@ A useful way to think about a layer is as a **filesystem diff**: it contains onl
 
 Each instruction in a Dockerfile typically creates a new layer. Because layers are immutable and cached, Docker can reuse them across builds, which makes image construction efficient and fast.
 
----
 
 ### What Does a Layer Contain?
 
@@ -186,7 +185,75 @@ In other words, a layer reflects the *result* of executing a single Dockerfile i
 
 It is also important to distinguish between **filesystem layers** and **image metadata**. Some instructions (like `RUN` or `COPY`) create filesystem layers, while others (like `CMD`) define metadata that tells Docker how to run the container.
 
----
+#### Filesystem Layers vs Image Metadata
+
+When working with Docker images, it is important to understand that not every instruction in a Dockerfile produces the same kind of result. Broadly speaking, Docker image instructions fall into two categories:
+
+- Filesystem layers
+- Image metadata
+
+They serve different purposes and are handled differently by Docker.
+
+
+
+#### Filesystem Layers
+
+Filesystem layers represent **actual changes to the image’s filesystem**. Each of these layers is created when an instruction modifies the contents of the image (files, directories, installed software ...).
+
+#### What creates filesystem layers?
+
+The following instructions typically create filesystem layers:
+
+- `FROM`
+- `RUN`
+- `COPY`
+- `ADD`
+
+#### What do filesystem layers contain?
+
+A filesystem layer is essentially a **diff** (difference) from the previous layer. It can include:
+
+- New files (application code)
+- Installed packages (Python, Node.js, golang ...)
+- System libraries and binaries
+- Modified files
+- Deleted files
+
+Each layer is immutable and stacked on top of the previous ones to form the final filesystem.
+
+
+#### Image Metadata
+
+Image metadata does not affect the filesystem. Instead, it defines how the image behaves when it is run as a container. Define runtime behavior Contains configuration and execution settings
+
+### What creates image metadata?
+
+Common metadata instructions include:
+
+- `CMD`
+- `ENTRYPOINT`
+- `ENV`
+- `EXPOSE`
+- `WORKDIR`
+- `USER`
+- `LABEL`
+
+### What does metadata contain?
+
+Metadata defines:
+
+- Default command to run (`CMD`)
+- Executable entrypoint (`ENTRYPOINT`)
+- Environment variables (`ENV`)
+- Default working directory (`WORKDIR`)
+- Exposed network ports (`EXPOSE`)
+- Additional descriptive information (`LABEL`)
+
+### Example
+
+```dockerfile
+CMD ["python3", "/app/app.py"]
+```
 
 ### Breaking Down an Image Layer by Layer
 
@@ -198,3 +265,4 @@ RUN apt-get update
 RUN apt-get install -y python3
 COPY app.py /app/app.py
 CMD ["python3", "/app/app.py"]
+```
