@@ -42,7 +42,7 @@ Common tools include VirtualBox and VMware.
 
 A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process. Virtualize the Operating System. They share the host system’s kernel and isolate the application processes from the rest of the system. This makes them lightweight and near instant to start.
 
-_For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
+For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
 
 
 
@@ -70,7 +70,7 @@ Docker is an open-source platform for packaging applications into containers: is
 
 Docker uses a client-server architecture. The Docker client talks to the Docker daemon, which does the heavy lifting of building, running, and distributing your Docker containers
 ![Docker architecture diagram — containers, engine, and host](https://docs.docker.com/get-started/images/docker-architecture.webp)
-*Figure: Docker architecture*
+*Docker architecture*
 
 
 ### The Docker client
@@ -150,4 +150,10 @@ Container is running!
 _for more deep about docker component see : https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5_
 
 
+## Container Image
 
+A container image is an immutable (unchangeable) file that contains everything needed to run an application: code, binaries, libraries, and configurations. It ensures the application runs consistently across different environments.
+
+It is built from layered file systems on top of a base image, which allows reuse and helps reduce size and improve performance.
+
+You can think of a container image as a template (like a class or a VM template) used to create running containers.
