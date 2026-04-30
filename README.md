@@ -381,6 +381,8 @@ python3 /app/app.py
 
 
 ## Docker containers
+![DockerContainers] (https://www.tonlexing.com/wp-content/uploads/2026/04/How-the-Strait-of-Hormuz-Situation-Is-Affecting-Shipping-From-China-in-2026.jpg)
+
 
 A container is the runtime instance of an image. In the same way that we can start a virtual machine (VM) from a virtual machine template, we start one or more containers from a single image. 
 The big difference between a VM and a container is that containers are faster and more lightweight  instead of running a full-blown
