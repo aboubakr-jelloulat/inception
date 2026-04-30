@@ -1,5 +1,9 @@
 ## The bad old days
 
+
+![Diagram 2](https://m.media-amazon.com/images/I/91iSdt0DDJS._AC_SL1500_.jpg)
+
+
 Applications run businesses. If applications break, businesses break. Sometimes they even go bust. These statements get truer every day.
 
 Most applications run on servers. In the past, we could only run one application per server. The open-systems world of Windows and Linux simply didn’t have the technologies to safely and securely run multiple applications on the same machine. So every time the business needed a new application, IT would buy a new server — often without knowing the application’s performance requirements. IT made conservative guesses and bought big, fast servers with lots of resiliency. The last thing anyone wanted was an underpowered server that couldn’t execute transactions and might lose customers and revenue.
@@ -7,6 +11,7 @@ Most applications run on servers. In the past, we could only run one application
 The result was large numbers of servers running at 5–10% of their capacity. A tragic waste of capital and resources.
 
 ## Hello VMware!
+
 
 Then VMware gave the world a gift — the virtual machine (VM). Suddenly we could safely and securely run multiple business applications on a single server. IT no longer needed to procure a new oversized server each time the business asked for an application. More often than not, new apps could run on existing servers with spare capacity. This let organizations extract far more value from their existing assets.
 
@@ -17,6 +22,10 @@ As useful as VMs are, they’re not perfect. Every VM requires its own dedicated
 VMs also boot slowly, and portability can be limited — migrating VM workloads between hypervisors and cloud platforms can be harder than it should be.
 
 ## Hello Containers!
+
+
+![Diagram 2](https://img.freepik.com/premium-photo/freight-shipping-container-with-flag-china-crane-hook-3d-illustration_493343-54485.jpg?semt=ais_hybrid&w=740&q=80)
+
 
 Web-scale players, such as Google, adopted container technologies to address VM shortcomings.
 
@@ -33,6 +42,9 @@ That foundation made containers possible long before Docker. However, containers
 
 
 ## Containers vs VMs
+
+
+![ContainersVsVMs] (https://aqueducttech.com/wp-content/uploads/2021/02/Cloud_VM_Container-1.png)
 
 Virtualization is a process lets you run virtual instances of computer systems on top of physical hardware. It enables multiple operating systems to run concurrently on the same machine.
 
@@ -56,6 +68,8 @@ Speaking of Docker… let’s go find who, what, and why Docker is!
 
 
 ## Hello Docker!
+
+![Hello Docker](https://gadelkareem.com/wp-content/uploads/2018/10/1_JAJ910fg52ODIRZjHXASBQ.png)
 
 When somebody says “Docker” they can be referring to any of at least three things:
 
