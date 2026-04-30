@@ -150,7 +150,7 @@ Container is running!
 _for more deep about docker component see : https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5_
 
 
-## Container Image
+## Docker Image
 
 
 ![Diagram 2](https://i.pinimg.com/736x/df/b2/4f/dfb24f83e60e7488c8b50456ad34e4db.jpg)
@@ -364,3 +364,108 @@ In this case, it tells Docker to execute:
 ```bash
 python3 /app/app.py
 ```
+
+
+## Docker containers
+
+A container is the runtime instance of an image. In the same way that we can start a virtual machine (VM) from a virtual machine template, we start one or more containers from a single image. 
+The big difference between a VM and a container is that containers are faster and more lightweight  instead of running a full-blown
+OS like a VM, containers share the OS/kernel with the host they’re running on.
+
+## How Docker Uses the Linux Kernel for Isolation
+
+
+A container is not a virtual machine. A VM emulates an entire computer, including its own kernel. A container is just a regular Linux process but one that has been tricked into thinking it's alone on the machine. That trick is pulled off by three kernel features: **Namespaces**, **cgroups**, and **OverlayFS**. Docker is just a friendly tool that orchestrates all three.
+
+
+
+### Namespaces — the isolation trick
+
+A namespace wraps a global kernel resource and gives a process its own private view of it. The process thinks it owns the world. Six types are used: `PID` (its own process tree), `NET` (its own network stack and ports), `MNT` (its own filesystem view), `UTS` (its own hostname), `IPC` (its own inter process communication), and `USER` (root inside the container, unprivileged on the host).
+
+### cgroups — the resource governor
+
+cgroups enforce hard limits on what a group of processes is allowed to consume. Docker uses them to cap CPU, memory, disk I/O, and process count  so one container can never starve the rest of the machine.
+
+### OverlayFS — the magic filesystem
+
+OverlayFS stacks the read-only image layers under a per-container writable layer. The container sees one unified filesystem. Reads come straight from the shared image at zero cost; writes copy only the modified file into the container's private layer. Delete a container — the image is untouched, ready for the next one.
+
+OverlayFS works with two layers:
+
+lowerdir (read-only) — this is the Docker image. It's immutable. Shared between every container that uses the same image. If 100 containers use the Ubuntu image, they all read from the same lowerdir on disk. Zero duplication.
+
+upperdir (read-write) — this is the container's private "scratch space." It starts empty. When a container modifies a file, the change goes here, not into the lowerdir.
+
+> These three primitives are the entire foundation of containers. Everything else Docker, Podman, Kubernetes is tooling built on top of the same kernel APIs.
+
+
+## Storage in Docker
+
+
+![Diagram 2](https://www.ajfriesen.com/content/images/size/w1200/2024/09/docker-volumes-vs-bind-mounts.png)
+
+
+Containers are ephemeral, when you delete one, everything written inside it is gone. For data that needs to survive, Docker gives you two options: **Bind Mounts** and **Docker Volumes**.
+
+
+### Bind Mount
+
+A bind mount takes a directory on your host machine and mounts it directly into the container. Same files, same bytes seen from two places at once. Edit a file on your host, the container sees it instantly. The container writes a file, it appears on your host instantly.
+
+It's the go to during development: your editor changes code on your machine, the container picks it up without a rebuild.
+
+```bash
+# Basic syntax
+docker run -v /host/path:/container/path image
+
+# Example — mount your source code into a Node container
+docker run -v $(pwd)/src:/app node:20 node /app/server.js
+
+# Read-only — container can read but not write back
+docker run -v /host/config:/etc/app:ro image
+
+```
+
+
+### Docker Volumes
+
+A Docker volume is a directory that Docker itself creates and manages. You give it a name, Docker decides where it lives on the host, under `/var/lib/docker/volumes/<name>/_data`. You never need to think about the host path.
+
+Because Docker owns it, a volume survives container deletions, can be shared between containers, and is portable, a volume named `pgdata` means the same thing on any machine running Docker.
+
+```bash
+# Create a named volume
+docker volume create mydata
+
+# Use it when running a container
+docker run -v mydata:/app/data image
+
+# Example — Postgres database that survives container restarts
+docker run -d -v pgdata:/var/lib/postgresql/data postgres:16
+
+
+# List all volumes
+docker volume ls
+
+# Inspect a volume (shows the host path and connected containers)
+docker volume inspect mydata
+
+# Delete a volume
+docker volume rm mydata
+
+# Delete all unused volumes
+docker volume prune
+```
+
+
+## Bind Mount vs Docker Volume
+
+| | Bind Mount | Docker Volume |
+|---|---|---|
+| Who manages the path | You | Docker |
+| Path on host | You choose | `/var/lib/docker/volumes/…` |
+| Survives `docker rm` | Yes (it's your file) | Yes (Docker keeps it) |
+| Portable across machines | No (path must exist) | Yes (name is the reference) |
+| Best for | Local development | Production data |
+
