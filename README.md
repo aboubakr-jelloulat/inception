@@ -379,9 +379,8 @@ python3 /app/app.py
 
 
 ## Docker containers
-![DockerContainers] (https://www.logupdateafrica.com/h-upload/2023/10/07/56507-chinas-export-dominance-to-push-container-repositioning-drewry.webp)
 
-![Diagram 2](https://www.logupdateafrica.com/h-upload/2023/10/07/56507-chinas-export-dominance-to-push-container-repositioning-drewry.webp)
+![Diagram 2](https://cdn.i-scmp.com/sites/default/files/styles/1020x680/public/d8/images/canvas/2023/03/26/3fc48b13-0f62-4cf1-a634-fbb86a39bc45_29c3a717.jpg?itok=jHXQ9qWp&v=1679800447)
 
 
 A container is the runtime instance of an image. In the same way that we can start a virtual machine (VM) from a virtual machine template, we start one or more containers from a single image. 
