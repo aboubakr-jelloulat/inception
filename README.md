@@ -474,7 +474,7 @@ docker volume prune
 ```
 
 
-## Bind Mount vs Docker Volume
+### Bind Mount vs Docker Volume
 
 | | Bind Mount | Docker Volume |
 |---|---|---|
@@ -483,4 +483,148 @@ docker volume prune
 | Survives `docker rm` | Yes (it's your file) | Yes (Docker keeps it) |
 | Portable across machines | No (path must exist) | Yes (name is the reference) |
 | Best for | Local development | Production data |
+
+
+
+## Docker networking
+
+
+![Diagram 2](https://www.docker.com/app/uploads/docker_networking.png)
+
+
+Docker networking controls how containers talk to each other, to the host, and to the outside world. Different network drivers provide different behaviors.
+
+---
+
+### Bridge network (default)
+
+The bridge driver is Docker’s default network for containers.
+
+- **Default attachment:** Every container is attached to the bridge network unless you specify otherwise.  
+- **Private IPs:** Containers get a private IP (for example, 172.17.0.x).  
+- **Name resolution:** Containers on the default bridge cannot resolve each other by name out of the box (only by IP).  
+- **External access:** NAT is used to allow containers to reach the outside world.
+
+Quick inspection:
+```bash
+docker network inspect bridge
+```
+Typical findings:
+- Subnet (commonly 172.17.0.0/16)
+- No automatic DNS resolution between containers
+
+Example (running an Alpine container):
+```bash
+docker run -it alpine
+/ # hostname
+46f698a62b0a
+```
+You’ll see the container’s hostname (not the host’s name), and you won’t be able to resolve other containers by name automatically.
+
+---
+
+### Host network
+
+The host network removes Docker’s network isolation for a container and makes it use the host’s network stack directly.
+
+- **Uses host’s network:** The container shares the host’s network interfaces.  
+- **No separate IP:** The container doesn’t get its own network namespace IP.  
+- **No port mapping required:** Ports are the host’s ports.
+
+Example:
+```bash
+docker run -it --network host alpine
+/ # hostname
+lbob
+```
+Inside the container the hostname and network behavior match the host.
+
+---
+
+### None network
+
+The none network disables networking for the container.
+
+- **No IP:** The container receives no network interface.  
+- **No communication:** No external or internal networking is possible.
+
+Example:
+```bash
+docker run -it --network none alpine
+/ # hostname
+3c7bf6ca77b6
+
+/ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+ping: sendto: Network unreachable
+```
+
+---
+
+### User-defined bridge network 
+
+The default bridge has a limitation: containers cannot resolve each other by name. A user-defined bridge fixes that by providing internal DNS, better isolation, and predictable communication.
+
+High-level benefits:
+- Internal DNS (containers can reach each other by name)
+- Cleaner isolation than the default bridge
+- Easier to reason about IP ranges and connected containers
+
+
+
+1. Create a network:
+```bash
+docker network create my_net
+```
+
+2. Inspect the new network:
+```bash
+docker network inspect my_net
+```
+What to look for:
+- `"Subnet"` → the IP range Docker assigned (for example 172.18.0.0/16)
+- `"Containers"` → currently empty until you start containers
+
+3. Run the first container:
+```bash
+docker run -dit --name c1 --network my_net busybox sh
+```
+What happens:
+- c1 joins my_net
+- c1 receives an IP (e.g., 172.18.0.2)
+- Docker registers `c1` in its internal DNS
+
+Verify:
+```bash
+docker network inspect my_net
+```
+You should now see `c1` listed in the `Containers` section.
+
+4. Run a second container:
+```bash
+docker run -dit --name c2 --network my_net busybox sh
+```
+What happens:
+- c2 joins the same user-defined bridge
+- c2 receives another IP (e.g., 172.18.0.3)
+- Docker registers `c2` in DNS
+
+Verify again:
+```bash
+docker network inspect my_net
+```
+Both `c1` and `c2` should appear.
+
+5. Enter c2:
+```bash
+docker exec -it c2 sh
+```
+You are now inside c2 and can treat it like a machine on a small private LAN.
+
+6. Test communication by name (inside c2):
+```sh
+ping c1
+```
+If everything is correct, the ping should succeed because Docker’s internal DNS resolves `c1` to its container IP.
+
 
