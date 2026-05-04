@@ -628,3 +628,225 @@ ping c1
 If everything is correct, the ping should succeed because Docker’s internal DNS resolves `c1` to its container IP.
 
 
+
+## Docker Compose
+
+![Diagram 2](https://cdn.hashnode.com/res/hashnode/image/upload/v1682688690767/c991180c-02ab-4eb1-8825-eafa35417c1d.png)
+
+### What is Docker Compose?
+
+Docker Compose is a tool that lets you define, configure, and run multi-container Docker applications. Instead of starting each container manually with `docker run`, Compose automates the process using a single YAML file  `docker-compose.yml`.
+
+With one command, you can start, stop, and manage your entire application stack, including services, networking, and storage.
+
+---
+
+### Why Use Docker Compose?
+
+Docker Compose shines when your application has multiple services that need to work together. A typical web application might include:
+
+- A **web server** container (NGINX or Apache)
+- An **application server** container (.NET service)
+- A **database** container (SQL Server)
+
+---
+
+### Writing Your First Docker Compose File
+
+Let's build a simple multi-container app with two services:
+
+- **app**     :  a .NET application
+- **sqlserver**  : a SQL Server database
+
+```yaml
+version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver_ActivitiesApp
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourPassword@123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_ActivitiesAppVolume:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourPassword@123' -Q 'SELECT 1' -No"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Activities_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__constr=Server=sqlserver,1433;Database=Activities;User Id=sa;Password=YourPassword@123;TrustServerCertificate=True;
+
+volumes:
+  sqlserver_ActivitiesAppVolume:
+```
+
+---
+
+### Breaking Down the Docker Compose File
+
+#### `version: '3.9'`
+Specifies the Docker Compose file format version. Think of it as telling Docker *which syntax rules to follow* when reading your file. Version 3 is the most widely used and supports all modern features like healthchecks and deploy configs.
+
+---
+
+#### `services`
+This is the heart of your Compose file. It lists every container your application needs. Each entry under `services` is an independent container with its own configuration.
+
+---
+
+#### `sqlserver` service
+
+```yaml
+sqlserver:
+  image: mcr.microsoft.com/mssql/server:2022-latest
+  container_name: sqlserver_ActivitiesApp
+  environment:
+    ACCEPT_EULA: "Y"
+    SA_PASSWORD: "YourPassword@123"
+  ports:
+    - "1433:1433"
+  volumes:
+    - sqlserver_ActivitiesAppVolume:/var/opt/mssql
+  healthcheck:
+    test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourPassword@123' -Q 'SELECT 1' -No"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+```
+
+- **`image`** — Instead of building a custom image, we pull a ready-made one directly from Microsoft's official registry. `2022-latest` means we want SQL Server 2022.
+
+- **`container_name`** — Gives the container a friendly, readable name (`sqlserver_ActivitiesApp`) instead of a random auto-generated one. This makes it easier to identify in logs and commands.
+
+- **`environment`** — Passes configuration values into the container at startup, like environment variables in your OS. SQL Server requires two of them:
+  - `ACCEPT_EULA: "Y"` — You must accept Microsoft's license agreement for SQL Server to start. Setting this to `"Y"` does that automatically.
+  - `SA_PASSWORD` — Sets the password for the `sa` (System Administrator) account, which is SQL Server's built-in admin user.
+
+- **`ports`** — Maps a port on your **host machine** to a port inside the **container**, in the format `"host:container"`.
+  - `"1433:1433"` means: *"When I connect to port 1433 on my machine, forward it to port 1433 inside the container."* Port 1433 is SQL Server's default port.
+
+- **`volumes`** — Mounts a persistent storage location into the container.
+  - `sqlserver_ActivitiesAppVolume:/var/opt/mssql` means: *"Store everything SQL Server saves at `/var/opt/mssql` inside the container into a named volume called `sqlserver_ActivitiesAppVolume`."*
+  - Without this, **all your database data would be lost** every time the container stops or restarts.
+
+- **`healthcheck`** — Tells Docker how to verify the container is truly *ready*, not just running. SQL Server takes a few seconds to initialize after the container starts, so we use a healthcheck to make sure it's accepting connections before the app tries to connect.
+  - `test` — The command Docker runs to check health. Here it uses `sqlcmd` to run a simple `SELECT 1` query. If it succeeds, the container is healthy.
+  - `interval: 10s` — Run the health check every 10 seconds.
+  - `timeout: 5s` — If the check takes longer than 5 seconds, consider it failed.
+  - `retries: 5` — After 5 consecutive failures, mark the container as unhealthy.
+  - `start_period: 30s` — Give the container 30 seconds to boot up before starting the health checks. This prevents false failures during slow startup.
+
+---
+
+#### `app` service
+
+```yaml
+app:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  container_name: Activities_app
+  ports:
+    - "8080:8080"
+  depends_on:
+    sqlserver:
+      condition: service_healthy
+  environment:
+    - ConnectionStrings__constr=Server=sqlserver,1433;Database=Activities;User Id=sa;Password=YourPassword@123;TrustServerCertificate=True;
+```
+
+- **`build`** — Instead of pulling a pre-built image, Docker builds one from your local code.
+  - `context: .` — Use the current directory as the build context (where Docker looks for your source files).
+  - `dockerfile: Dockerfile` — Use the file named `Dockerfile` in that directory to build the image.
+
+- **`container_name`** — Names the container `Activities_app` for easy identification.
+
+- **`ports`** — `"8080:8080"` maps port 8080 on your machine to port 8080 inside the container. You can access the app at `http://localhost:8080`.
+
+- **`depends_on`** — Controls startup order. Here it tells Docker: *"Don't start the app until `sqlserver` is healthy."*
+  - `condition: service_healthy` — This is stricter than a basic `depends_on`. It waits for the SQL Server healthcheck to pass, not just for the container to start. Without this, the app might crash trying to connect to a database that isn't ready yet.
+
+- **`environment`** — Passes the database connection string to the .NET app. Let's break it down:
+  - `Server=sqlserver,1433` — Connect to the host named `sqlserver` (which is the service name defined above — Docker's internal DNS resolves it automatically) on port `1433`.
+  - `Database=Activities` — Connect to a database called `Activities`.
+  - `User Id=sa` — Log in as the `sa` admin user.
+  - `Password=YourPassword@123` — The same password set in the `sqlserver` service.
+  - `TrustServerCertificate=True` — Skip SSL certificate validation. Common in local/dev environments where no real certificate is configured.
+
+---
+
+#### `volumes` 
+
+```yaml
+volumes:
+  sqlserver_ActivitiesAppVolume:
+```
+
+This **declares** the named volume used by the `sqlserver` service. Docker won't create a volume automatically unless it's registered here. Think of it as a *"create this storage bucket if it doesn't exist yet"* instruction. The actual data lives on your host machine, managed by Docker, and survives container restarts.
+
+### Using Docker Compose
+
+#### 1. Build and Start All Services
+
+```bash
+docker-compose up --build
+```
+
+This will:
+- Build images defined with a `build` directive
+- Pull any missing images from Docker Hub
+- Create and start all containers
+
+#### 2. Stop the Containers
+
+```bash
+docker-compose stop
+```
+
+Stops running containers without removing them.
+
+#### 3. Remove Everything
+
+```bash
+docker-compose down
+```
+
+Stops and removes all containers, networks, and volumes.
+
+#### 4. Scale a Service
+
+```bash
+docker-compose up --scale app=3
+```
+
+Runs 3 instances of the `app` service — great for scaling stateless services.
+
+---
+
+### Docker Compose Commands 
+
+| Command | Description |
+|---|---|
+| `docker-compose up` | Build, create, and start all services |
+| `docker-compose down` | Stop and remove all services, networks, and volumes |
+| `docker-compose stop` | Stop running services without removing containers |
+| `docker-compose build` | Build service images defined in the Compose file |
+| `docker-compose logs` | View logs from all running services |
+
