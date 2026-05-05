@@ -485,12 +485,9 @@ docker volume prune
 | Best for | Local development | Production data |
 
 
-
 ## Docker networking
 
-
 ![Diagram 2](https://www.docker.com/app/uploads/docker_networking.png)
-
 
 Docker networking controls how containers talk to each other, to the host, and to the outside world. Different network drivers provide different behaviors.
 
@@ -498,45 +495,52 @@ Docker networking controls how containers talk to each other, to the host, and t
 
 ### Bridge network (default)
 
-The bridge driver is Docker’s default network for containers.
+The bridge driver is Docker's default network for containers.
 
-- **Default attachment:** Every container is attached to the bridge network unless you specify otherwise.  
-- **Private IPs:** Containers get a private IP (for example, 172.17.0.x).  
-- **Name resolution:** Containers on the default bridge cannot resolve each other by name out of the box (only by IP).  
+- **Default attachment:** Every container is attached to the bridge network unless you specify otherwise.
+- **Private IPs:** Containers get a private IP (for example, 172.17.0.x).
+- **Name resolution:** Containers on the default bridge cannot resolve each other by name out of the box (only by IP).
 - **External access:** NAT is used to allow containers to reach the outside world.
 
 Quick inspection:
+
 ```bash
 docker network inspect bridge
 ```
+
 Typical findings:
+
 - Subnet (commonly 172.17.0.0/16)
 - No automatic DNS resolution between containers
 
 Example (running an Alpine container):
+
 ```bash
 docker run -it alpine
 / # hostname
 46f698a62b0a
 ```
-You’ll see the container’s hostname (not the host’s name), and you won’t be able to resolve other containers by name automatically.
+
+You will see the container's hostname (not the host's name), and you will not be able to resolve other containers by name automatically.
 
 ---
 
 ### Host network
 
-The host network removes Docker’s network isolation for a container and makes it use the host’s network stack directly.
+The host network removes Docker's network isolation for a container and makes it use the host's network stack directly.
 
-- **Uses host’s network:** The container shares the host’s network interfaces.  
-- **No separate IP:** The container doesn’t get its own network namespace IP.  
-- **No port mapping required:** Ports are the host’s ports.
+- **Uses host's network:** The container shares the host's network interfaces.
+- **No separate IP:** The container does not get its own network namespace IP.
+- **No port mapping required:** Ports are the host's ports.
 
 Example:
+
 ```bash
 docker run -it --network host alpine
 / # hostname
 lbob
 ```
+
 Inside the container the hostname and network behavior match the host.
 
 ---
@@ -545,10 +549,11 @@ Inside the container the hostname and network behavior match the host.
 
 The none network disables networking for the container.
 
-- **No IP:** The container receives no network interface.  
+- **No IP:** The container receives no network interface.
 - **No communication:** No external or internal networking is possible.
 
 Example:
+
 ```bash
 docker run -it --network none alpine
 / # hostname
@@ -561,73 +566,186 @@ ping: sendto: Network unreachable
 
 ---
 
-### User-defined bridge network 
+### User-defined bridge network
 
 The default bridge has a limitation: containers cannot resolve each other by name. A user-defined bridge fixes that by providing internal DNS, better isolation, and predictable communication.
 
 High-level benefits:
+
 - Internal DNS (containers can reach each other by name)
 - Cleaner isolation than the default bridge
 - Easier to reason about IP ranges and connected containers
 
-
-
 1. Create a network:
+
 ```bash
 docker network create my_net
 ```
 
 2. Inspect the new network:
+
 ```bash
 docker network inspect my_net
 ```
+
 What to look for:
-- `"Subnet"` → the IP range Docker assigned (for example 172.18.0.0/16)
-- `"Containers"` → currently empty until you start containers
+
+- `"Subnet"` — the IP range Docker assigned (for example 172.18.0.0/16)
+- `"Containers"` — currently empty until you start containers
 
 3. Run the first container:
+
 ```bash
 docker run -dit --name c1 --network my_net busybox sh
 ```
+
 What happens:
-- c1 joins my_net
-- c1 receives an IP (e.g., 172.18.0.2)
+
+- `c1` joins `my_net`
+- `c1` receives an IP (e.g., 172.18.0.2)
 - Docker registers `c1` in its internal DNS
 
 Verify:
+
 ```bash
 docker network inspect my_net
 ```
+
 You should now see `c1` listed in the `Containers` section.
 
 4. Run a second container:
+
 ```bash
 docker run -dit --name c2 --network my_net busybox sh
 ```
+
 What happens:
-- c2 joins the same user-defined bridge
-- c2 receives another IP (e.g., 172.18.0.3)
+
+- `c2` joins the same user-defined bridge
+- `c2` receives another IP (e.g., 172.18.0.3)
 - Docker registers `c2` in DNS
 
 Verify again:
+
 ```bash
 docker network inspect my_net
 ```
+
 Both `c1` and `c2` should appear.
 
-5. Enter c2:
+5. Enter `c2`:
+
 ```bash
 docker exec -it c2 sh
 ```
-You are now inside c2 and can treat it like a machine on a small private LAN.
 
-6. Test communication by name (inside c2):
+You are now inside `c2` and can treat it like a machine on a small private LAN.
+
+6. Test communication by name (inside `c2`):
+
 ```sh
 ping c1
 ```
-If everything is correct, the ping should succeed because Docker’s internal DNS resolves `c1` to its container IP.
+
+If everything is correct, the ping should succeed because Docker's internal DNS resolves `c1` to its container IP.
+
+---
+
+### Why not use the default bridge?
+
+The default `bridge` network is convenient for quick tests, but it introduces limitations that make it unsuitable for real multi-container applications.
+
+**1. No automatic service discovery (no DNS resolution)**
+
+On the default bridge, containers cannot resolve each other by name. Communication is only possible using IP addresses, which are dynamic and can change when containers restart.
+
+This creates fragile setups where:
+
+- You must manually track container IPs
+- Applications cannot rely on stable hostnames
+- Scaling or restarting containers breaks connectivity
+
+**2. Poor maintainability**
+
+Using IP addresses instead of names makes configurations harder to read and maintain. In real-world systems (APIs, databases, microservices), services are expected to communicate using stable identifiers like `db`, `api`, etc.
 
 
+Modern containerized applications (including those using orchestration tools) rely on:
+
+- Service discovery (DNS)
+- Network segmentation
+- Predictable communication patterns
+
+The default bridge does not provide these features.
+
+---
+
+
+The default bridge network is useful for simple or temporary containers, but it should be avoided for applications where containers need to communicate.
+
+A user-defined bridge network solves these issues by:
+
+- Providing built-in DNS (name-based communication)
+- Offering better isolation
+- Making configurations cleaner and more predictable
+
+---
+
+### Examples
+
+#### Part A: The Problem (Default Network)
+
+```bash
+# Run postgres on default network
+docker run -d --name db-alone -e POSTGRES_PASSWORD=test postgres:15-alpine
+
+# Try to ping by name — this will FAIL
+docker run --name alpine-test alpine ping -c 3 db-alone
+
+# Clean up both
+docker rm -f db-alone alpine-test
+```
+
+Expected result:
+
+```
+ping: bad address 'db-alone'
+```
+
+This failure happens because the default bridge does not provide DNS resolution between containers.
+
+---
+
+#### Part B: The Solution (Custom Network)
+
+```bash
+# Create the custom network
+docker network create grademe-network
+
+# Verify it exists
+docker network ls | grep grademe-network
+
+# Run the PostgreSQL container on the network
+docker run -d \
+  --name grademe-db \
+  --network=grademe-network \
+  -e POSTGRES_PASSWORD=secretpass \
+  postgres:15-alpine
+
+# Run the Alpine container on the same network
+docker run -d \
+  --name grademe-api \
+  --network=grademe-network \
+  alpine sleep 3600
+
+# Ping grademe-db BY NAME from grademe-api (validation command)
+docker exec grademe-api ping -c 3 grademe-db
+```
+
+Expected result:
+
+- The ping succeeds
+- `grademe-db` is resolved automatically via Docker's internal DNS
 
 ## Docker Compose
 
