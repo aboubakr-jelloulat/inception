@@ -2,6 +2,9 @@
 set -e
 
 DB_PASS=$(cat /run/secrets/db_password)
+CREDS=$(cat /run/secrets/credentials)
+WP_ADMIN_PASS=$(echo "$CREDS" | sed -n '1p')
+WP_USER_PASS=$(echo "$CREDS" | sed -n '2p')
 
 cd /var/www/html
 

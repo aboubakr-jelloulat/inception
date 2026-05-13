@@ -1,16 +1,6 @@
-=
+
 [mysqld]
-
-# Run MariaDB process as mysql user 
 user = mysql
-
-# Allow connections from any IP address inside Docker network
-# Required so WordPress container can connect
 bind-address = 0.0.0.0
-
-
 port = 3306
-
-# Directory where database files are stored Must match Docker volume (/var/lib/mysql)
-
 datadir = /var/lib/mysql
