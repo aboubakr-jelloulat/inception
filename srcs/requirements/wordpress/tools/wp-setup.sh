@@ -1,29 +1,42 @@
 #!/bin/bash
 set -e
 
+echo "Starting WordPress container..."
+
+# Read secrets
 DB_PASS=$(cat /run/secrets/db_password)
 CREDS=$(cat /run/secrets/credentials)
+
 WP_ADMIN_PASS=$(echo "$CREDS" | sed -n '1p')
 WP_USER_PASS=$(echo "$CREDS" | sed -n '2p')
 
 cd /var/www/html
 
-# Wait for MariaDB
-until wp db check \
-    --dbhost=mariadb \
-    --dbname="$MYSQL_DATABASE" \
-    --dbuser="$MYSQL_USER" \
-    --dbpass="$DB_PASS" \
-    --allow-root 2>/dev/null; do
-    echo "Waiting for MariaDB..."
+# Ensure runtime directory exists (extra safety)
+mkdir -p /run/php
+
+echo "Waiting for MariaDB..."
+
+until mysqladmin ping \
+    -h mariadb \
+    -u"$MYSQL_USER" \
+    -p"$DB_PASS" \
+    --silent; do
     sleep 2
 done
 
-# Install WordPress if needed
+echo "MariaDB is ready!"
+
+# Prevent WP-CLI errors if directory is empty
+if [ ! -f wp-load.php ]; then
+    echo "Downloading WordPress..."
+    wp core download --allow-root
+fi
+
+# Install only if not installed
 if ! wp core is-installed --allow-root; then
 
-    wp core download --allow-root
-
+    echo "Creating wp-config.php..."
     wp config create \
         --dbname="$MYSQL_DATABASE" \
         --dbuser="$MYSQL_USER" \
@@ -31,6 +44,7 @@ if ! wp core is-installed --allow-root; then
         --dbhost=mariadb \
         --allow-root
 
+    echo "Installing WordPress..."
     wp core install \
         --url="http://$DOMAIN_NAME" \
         --title="Inception" \
@@ -39,11 +53,14 @@ if ! wp core is-installed --allow-root; then
         --admin_email="$WP_ADMIN_EMAIL" \
         --allow-root
 
+    echo "Creating author user..."
     wp user create \
         "$WP_USER" "$WP_USER_EMAIL" \
         --role=author \
         --user_pass="$WP_USER_PASS" \
         --allow-root
 fi
+
+echo "Starting PHP-FPM..."
 
 exec php-fpm7.4 -F

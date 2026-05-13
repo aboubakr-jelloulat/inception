@@ -354,3 +354,65 @@ So using:
 is correct and professional.
 
 
+
+
+
+### lexoooomple :
+
+log in as root:
+  sudo mysql
+
+  Then run:
+
+  ALTER USER 'root'@'localhost'
+  IDENTIFIED BY 'your_password';
+
+  FLUSH PRIVILEGES;
+
+  Then exit:
+
+  EXIT;
+
+  Now try:
+
+
+  mysql -u root -p
+
+Step 1: Create database : 
+  CREATE DATABASE hypertube;
+
+Step 2: Use it : 
+  USE hypertube;
+
+Step 3: Create table movies
+
+  We want:
+
+  id
+  movie name
+  actor
+  CREATE TABLE movies (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      movie_name VARCHAR(255) NOT NULL,
+      actor VARCHAR(255) NOT NULL
+  );
+
+Step 4: Insert example data
+:
+
+  INSERT INTO movies (movie_name, actor) VALUES
+  ('Inception', 'Leonardo DiCaprio'),
+  ('Interstellar', 'Matthew McConaughey'),
+  ('The Revenant', 'Leonardo DiCaprio'),
+  ('Fight Club', 'Brad Pitt'),
+  ('The Dark Knight', 'Christian Bale');
+
+🔍 Step 5: View data
+  SELECT * FROM movies;
+
+
+
+MariaDB stores everything on disk in:
+
+  /var/lib/mysql/
+
