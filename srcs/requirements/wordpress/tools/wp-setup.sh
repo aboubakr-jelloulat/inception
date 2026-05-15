@@ -63,4 +63,17 @@ fi
 
 echo "Starting PHP-FPM..."
 
+
+echo "Configuring Redis..."
+
+wp plugin install redis-cache --activate --allow-root || true
+
+wp config set WP_REDIS_HOST redis --allow-root
+wp config set WP_REDIS_PORT 6379 --allow-root
+wp config set WP_CACHE true --raw --allow-root
+
+wp redis enable --allow-root || true
+
+echo "Redis cache configured!"
+
 exec php-fpm7.4 -F
