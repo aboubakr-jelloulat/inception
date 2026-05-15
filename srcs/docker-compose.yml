@@ -13,7 +13,7 @@ secrets:
 
 
 services:
-  nginx:
+  nginx:                              ## nginx
     build: ./requirements/nginx
     container_name: nginx
     restart: unless-stopped
@@ -26,7 +26,8 @@ services:
     depends_on:
       - wordpress
 
-  wordpress:
+
+  wordpress:                ## wordpress      # https://ajelloul.42.fr/  
     build: ./requirements/wordpress
     container_name: wordpress
     restart: unless-stopped
@@ -51,7 +52,8 @@ services:
       WP_USER:          ${WP_USER}
       WP_USER_EMAIL:    ${WP_USER_EMAIL}
 
-  mariadb:
+
+  mariadb:                            ## mariadb
     build: ./requirements/mariadb
     container_name: mariadb
     restart: unless-stopped
@@ -70,7 +72,8 @@ services:
       MYSQL_PASSWORD_FILE:      /run/secrets/db_password
       MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
     
-  redis:
+
+  redis:                                  ## redis
     build: ./bonus/redis
     container_name: redis
     restart: unless-stopped
@@ -79,19 +82,19 @@ services:
     networks:
       - inception
     
-  adminer:
+  adminer:                       ## adminer   http://localhost:8888
     build: ./bonus/adminer
     container_name: adminer
     restart: unless-stopped
     ports:
-      - "8888:8888"                     # http://localhost:8888
+      - "8888:8888"             
     networks:
       - inception
     depends_on:
       - mariadb
 
 
-  ftp:
+  ftp:                                   ## ftp
     build: ./bonus/ftp
     container_name: ftp
     restart: unless-stopped
@@ -112,11 +115,22 @@ services:
 
 
 
-  website:
+  dozzle:                       ## dozzle     http://localhost:9090
+    build: ./bonus/dozzle
+    container_name: dozzle
+    restart: unless-stopped
+    ports:
+      - "9090:8080" 
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - inception
+
+  website:                                  ## website  http://localhost:8081
     build: ./bonus/website
     container_name: website
     ports:
-      - "8081:80"    # http://localhost:8081
+      - "8081:80"    
 
 
 networks:

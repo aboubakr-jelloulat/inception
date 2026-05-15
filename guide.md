@@ -143,6 +143,11 @@ docker run -d \
 
 ---
 
+To install netstat on a Debian-based container,  : ```apt-get update && apt-get install -y net-tools
+``` 
+```netstat -tlnp```
+Flag Breakdown -t: Shows TCP ports.-l: Shows only listening ports (servers).-n: Shows numerical addresses and port numbers instead of resolving names.-p: Shows the PID and name of the program owning the socket.
+
 ### Check Logs
 
 ```bash
@@ -209,6 +214,19 @@ DELETE FROM users WHERE name = 'Bob';
 -- Drop table
 DROP TABLE users;
 ```
+
+### redis cash issue :
+
+1. Flush Redis cache (quickest fix):
+bashdocker exec -it redis redis-cli FLUSHALL
+Then try logging in as lbob again — it should fail now.
+2. Also delete the user properly from WordPress (the right way):
+Don't delete directly from the DB. Use WP-CLI inside the wordpress container:
+bashdocker exec -it wordpress wp user delete lbob --reassign=1 --allow-root
+Replace 1 with the admin user ID to reassign their content, or use --network flag if multisite.
+3. Verify the user is gone:
+bashdocker exec -it wordpress wp user list --allow-root
+
 
 ---
 

@@ -76,4 +76,4 @@ wp redis enable --allow-root || true
 
 echo "Redis cache configured!"
 
-exec php-fpm7.4 -F
+exec php-fpm8.2 -F
