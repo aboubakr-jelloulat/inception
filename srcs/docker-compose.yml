@@ -16,6 +16,7 @@ services:
   nginx:                              ## nginx
     build: ./requirements/nginx
     container_name: nginx
+    image: nginx
     restart: unless-stopped
     ports:
       - "443:443"
@@ -30,6 +31,7 @@ services:
   wordpress:                ## wordpress      # https://ajelloul.42.fr/  
     build: ./requirements/wordpress
     container_name: wordpress
+    image: wordpress
     restart: unless-stopped
     expose:
       - "9000"
@@ -43,22 +45,17 @@ services:
     secrets:
       - db_password
       - credentials
-    environment:
-      DOMAIN_NAME:      ${DOMAIN_NAME}
-      MYSQL_DATABASE:   ${MYSQL_DATABASE}
-      MYSQL_USER:       ${MYSQL_USER}
-      WP_ADMIN_USER:    ${WP_ADMIN_USER}
-      WP_ADMIN_EMAIL:   ${WP_ADMIN_EMAIL}
-      WP_USER:          ${WP_USER}
-      WP_USER_EMAIL:    ${WP_USER_EMAIL}
+    env_file:
+      - .env
 
 
   mariadb:                            ## mariadb
     build: ./requirements/mariadb
     container_name: mariadb
+    image: mariadb
     restart: unless-stopped
     expose:
-      - "3306"
+      - "3307"
     volumes:
       - db:/var/lib/mysql
     networks:
@@ -66,16 +63,13 @@ services:
     secrets:
       - db_password
       - db_root_password
-    environment:
-      MYSQL_DATABASE:           ${MYSQL_DATABASE}
-      MYSQL_USER:               ${MYSQL_USER}
-      MYSQL_PASSWORD_FILE:      /run/secrets/db_password
-      MYSQL_ROOT_PASSWORD_FILE: /run/secrets/db_root_password
-    
+    env_file:
+      - .env
 
   redis:                                  ## redis
     build: ./bonus/redis
     container_name: redis
+    image: redis
     restart: unless-stopped
     expose:
       - "6379"                         
@@ -85,6 +79,7 @@ services:
   adminer:                       ## adminer   http://localhost:8888
     build: ./bonus/adminer
     container_name: adminer
+    image: adminer
     restart: unless-stopped
     ports:
       - "8888:8888"             
@@ -97,6 +92,7 @@ services:
   ftp:                                   ## ftp
     build: ./bonus/ftp
     container_name: ftp
+    image: ftp
     restart: unless-stopped
     ports:
       - "21:21"
@@ -107,9 +103,8 @@ services:
       - inception
     depends_on:
       - wordpress
-    environment:
-      - FTP_USER=${FTP_USER}
-      - FTP_PASSWORD_FILE=/run/secrets/ftp_password
+    env_file:
+      - .env
     secrets:
       - ftp_password
 
@@ -118,6 +113,7 @@ services:
   dozzle:                       ## dozzle     http://localhost:9090
     build: ./bonus/dozzle
     container_name: dozzle
+    image: dozzle
     restart: unless-stopped
     ports:
       - "9090:8080" 
@@ -129,8 +125,9 @@ services:
   website:                                  ## website  http://localhost:8081
     build: ./bonus/website
     container_name: website
+    image: website
     ports:
-      - "8081:80"    
+      - "8081:8081"    
 
 
 networks:
@@ -140,7 +137,7 @@ networks:
 
 # Bind-mount: Docker maps the volume directly to a folder on the host.
 # type: none  → no special filesystem driver
-# o: bind     → standard Linux bind-mount
+# o:      bind     → standard Linux bind-mount
 # device      → the absolute path on the host machine
 
 volumes:
@@ -157,4 +154,4 @@ volumes:
       type:   none
       o:      bind
       device: /home/${USER}/data/wordpress
-
+  

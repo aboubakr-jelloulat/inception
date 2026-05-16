@@ -1,9 +1,15 @@
 FROM debian:bookworm
 
-RUN apt-get update && apt-get install -y nginx &&  apt-get clean && rm -rf /var/lib/apt/lists/* 
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends python3 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY portfolio /var/www/html
+WORKDIR /var/www/static
 
-EXPOSE 80
+COPY portfolio/ .
 
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 8081
+
+CMD ["python3", "-m", "http.server", "8081", "--bind", "0.0.0.0"]
+
+

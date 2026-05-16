@@ -3,8 +3,7 @@ FROM debian:bookworm
 RUN apt-get update && apt-get install -y --no-install-recommends \
         nginx \
         openssl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /etc/nginx/ssl \
     && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \

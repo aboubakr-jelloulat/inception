@@ -679,6 +679,90 @@ KEYS * : Finds keys
 INFO : Server Info
 
 
+
+1. WordPress → Redis connection is created by PHP plugin (NOT your script)
+
+This line is the key:
+
+wp plugin install redis-cache --activate --allow-root
+
+This installs and activates a WordPress plugin called Redis Object Cache.
+
+That plugin contains the actual PHP code that connects to Redis.
+
+🔌 So where is the real connection code?
+
+Inside WordPress after installation:
+
+/var/www/html/wp-content/plugins/redis-cache/
+
+And more importantly, it uses:
+
+wp-content/object-cache.php
+
+That file is the bridge between WordPress and Redis.
+
+2. The real mechanism: object-cache.php
+
+When Redis plugin is enabled, it drops a file like:
+
+wp-content/object-cache.php
+This file is VERY important.
+
+WordPress automatically loads it if it exists.
+
+It overrides WordPress caching system.
+
+⚙️ What does it do?
+
+It replaces default WordPress caching functions:
+
+Normally WordPress does:
+Database → PHP → page generation
+With Redis plugin:
+WordPress cache API → object-cache.php → Redis server
+🔗 3. Where does Redis connection actually happen?
+
+Inside PHP code like:
+
+$redis = new Redis();
+$redis->connect('redis', 6379);
+
+BUT you usually don’t see this directly because:
+
+👉 the plugin handles it internally
+
+🧩 4. How WordPress knows Redis exists
+
+These lines in your script:
+
+wp config set WP_REDIS_HOST redis
+wp config set WP_REDIS_PORT 6379
+wp config set WP_CACHE true --raw
+
+This creates in wp-config.php:
+
+define('WP_REDIS_HOST', 'redis');
+define('WP_REDIS_PORT', 6379);
+define('WP_CACHE', true);
+
+
+Key takeaway
+
+The real connection code is inside:
+
+wp-content/object-cache.php
+
+and the Redis plugin:
+
+wp-content/plugins/redis-cache/
+
+Your bash script only:
+
+installs plugin
+sets config values
+enables caching
+
 ## FTP
 
 1. Install FileZilla on Ubuntu :
@@ -687,4 +771,42 @@ sudo apt update && sudo apt install -y filezilla
 
 filezilla --version
 ```
+
+
+
+What does -R mean?
+
+Recursive.
+
+Meaning:
+
+apply to folder
+and all files/subfolders inside
+
+What is /var/lib/mysql?
+
+This is the actual database storage directory.
+
+Inside are:
+
+tables
+indexes
+user accounts
+WordPress data
+
+
+
+Does EXPOSE open the port?
+
+NO.
+
+This is VERY important.
+
+EXPOSE does NOT publish the port to your computer.
+
+It only:
+
+documents the port
+tells Docker:
+“this container listens on this port”
 

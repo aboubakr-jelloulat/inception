@@ -7,3 +7,5 @@ srcs/.env
 *.pid
 
 .DS_Store
+
+README.md 

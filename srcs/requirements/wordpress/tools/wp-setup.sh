@@ -12,13 +12,15 @@ WP_USER_PASS=$(echo "$CREDS" | sed -n '2p')
 
 cd /var/www/html
 
-# Ensure runtime directory exists (extra safety)
+# Ensure runtime directory exists 
 mkdir -p /run/php
 
 echo "Waiting for MariaDB..."
 
+
 until mysqladmin ping \
     -h mariadb \
+    -P 3307 \
     -u"$MYSQL_USER" \
     -p"$DB_PASS" \
     --silent; do
@@ -36,12 +38,11 @@ fi
 # Install only if not installed
 if ! wp core is-installed --allow-root; then
 
-    echo "Creating wp-config.php..."
     wp config create \
         --dbname="$MYSQL_DATABASE" \
         --dbuser="$MYSQL_USER" \
         --dbpass="$DB_PASS" \
-        --dbhost=mariadb \
+        --dbhost=mariadb:3307 \
         --allow-root
 
     echo "Installing WordPress..."
