@@ -1,149 +1,970 @@
-*This project has been created as part of the 42 curriculum by [ajelloul].*
+## The bad old days
 
-# Inception
 
-## Description
+![Diagram 2](https://m.media-amazon.com/images/I/91iSdt0DDJS._AC_SL1500_.jpg)
 
-Inception is a system administration project from the 42 curriculum. The goal is to set up a small infrastructure of services inside a virtual machine using Docker and Docker Compose. Each service runs in its own container, built from scratch using custom Dockerfiles based on Alpine or Debian.
 
-The infrastructure includes:
+Applications run businesses. If applications break, businesses break. Sometimes they even go bust. These statements get truer every day.
 
-- **NGINX** — the only entry point, listens on port 443 with TLS (TLSv1.2/1.3)
-- **WordPress** — runs PHP-FPM, communicates with NGINX over a Unix socket on port 9000
-- **MariaDB** — the database backend for WordPress
-- **Redis** — object cache for WordPress
-- **FTP** — gives FTP access to the WordPress volume
-- **Adminer** — a lightweight database management UI, accessible on port 8888
-- **Dozzle** — a real-time container log viewer, accessible on port 9090
-- **Static website** — a simple personal page served on port 8081
+Most applications run on servers. In the past, we could only run one application per server. The open-systems world of Windows and Linux simply didn’t have the technologies to safely and securely run multiple applications on the same machine. So every time the business needed a new application, IT would buy a new server — often without knowing the application’s performance requirements. IT made conservative guesses and bought big, fast servers with lots of resiliency. The last thing anyone wanted was an underpowered server that couldn’t execute transactions and might lose customers and revenue.
 
-### Docker in this project
+The result was large numbers of servers running at 5–10% of their capacity. A tragic waste of capital and resources.
 
-Docker is used to isolate each service into its own container, keeping the environment reproducible and easy to manage. Each container is built from a custom Dockerfile — no pre-built images from Docker Hub for the main services.
+## Hello VMware!
 
-All containers communicate through a user-defined bridge network called `inception`. This gives them automatic DNS resolution by name (e.g., `wordpress` can reach `mariadb` just by using the name `mariadb`). The default Docker bridge network does not support this.
 
-Persistent data (the database and WordPress files) is stored in named volumes that are bind-mounted to `/home/<user>/data/` on the host. This means data survives container restarts and rebuilds.
+Then VMware gave the world a gift — the virtual machine (VM). Suddenly we could safely and securely run multiple business applications on a single server. IT no longer needed to procure a new oversized server each time the business asked for an application. More often than not, new apps could run on existing servers with spare capacity. This let organizations extract far more value from their existing assets.
 
-Sensitive credentials (database passwords, FTP password, WordPress admin credentials) are passed to containers using Docker secrets, not plain environment variables. Secrets are mounted as files inside the container under `/run/secrets/`, keeping them out of the process environment and away from `docker inspect` output.
+## But… (and there’s always a but)
+
+As useful as VMs are, they’re not perfect. Every VM requires its own dedicated operating system. Each OS consumes CPU, RAM, and storage that could otherwise power applications. Each OS needs patching and monitoring and, in some cases, licensing. That adds operational and capital expense.
+
+VMs also boot slowly, and portability can be limited — migrating VM workloads between hypervisors and cloud platforms can be harder than it should be.
+
+## Hello Containers!
+
+
+![Diagram 2](https://img.freepik.com/premium-photo/freight-shipping-container-with-flag-china-crane-hook-3d-illustration_493343-54485.jpg?semt=ais_hybrid&w=740&q=80)
+
+
+Web-scale players, such as Google, adopted container technologies to address VM shortcomings.
+
+In the container model, the container is roughly analogous to the VM, but containers do not require a full-blown OS per instance. All containers on a host share the host OS. That frees up CPU, RAM, and storage, reduces licensing and OS maintenance overhead, and lowers op-ex and cap-ex.
+
+Containers are also fast to start and highly portable. Moving container workloads from your laptop to the cloud, or between VMs and bare metal, is straightforward.
+
+
+## Linux containers
+
+Modern containers began in the Linux world and are the result of sustained work by many people and organizations over many years. Key kernel technologies notably namespaces, control groups (cgroups), and union filesystems  laid the technical foundation for containers. Major contributors, including Google, added important container-related features to the Linux kernel; without those contributions we wouldn’t have the modern container ecosystem we rely on today.
+
+That foundation made containers possible long before Docker. However, containers remained relatively complex and out of reach for most organizations until Docker arrived and effectively democratized container usage, making them accessible to the masses.
+
+
+## Containers vs VMs
+
+
+Virtualization is a process lets you run virtual instances of computer systems on top of physical hardware. It enables multiple operating systems to run concurrently on the same machine.
+
+A Virtual Machine (VM) is a software-based computer that runs inside a physical machine. It emulates a complete system, including hardware, allowing it to run its own operating system and applications independently from the host.
+VM is managed by a hypervisor, which is a software layer responsible for creating and running virtual machines. There are two types of hypervisors: bare-metal hypervisor : runs directly on the physical hardware, Hosted hypervisor : runs on top of an existing operating system
+Common tools include VirtualBox and VMware.
+
+A container is an isolated (namespaces) and restricted (cgroups, capabilities, seccomp) process. Virtualize the Operating System. They share the host system’s kernel and isolate the application processes from the rest of the system. This makes them lightweight and near instant to start.
+
+For a structured learning path on containers, see "Learning Containers From The Bottom Up": <https://iximiuz.com/en/posts/container-learning-path/>.
+
+
+
+## "VMs Relaxed  Then Containers Threw a House Party" : The Rise of Containers
+
+We used to live in a world where every time the business wanted a new application, we had to buy a brand-new server for it. 
+Then VMware came along and enabled IT departments to drive more value out of new and existing company IT assets.
+But as good as VMware and the VM model is, it’s not perfect. Following the success of VMware and hypervisors came a newer more efficient and lightweight virtualization technology called containers. But containers were initially hard to implement and were only found in the data centers of web giants that had Linux kernel engineers on staff. 
+Then along came Docker Inc. and suddenly container virtualization technologies were available to the masses.
+Speaking of Docker… let’s go find who, what, and why Docker is!
+
+
+## Hello Docker!
+
+![Hello Docker](https://gadelkareem.com/wp-content/uploads/2018/10/1_JAJ910fg52ODIRZjHXASBQ.png)
+
+When somebody says “Docker” they can be referring to any of at least three things:
+
+1. Docker, Inc. the company  
+2. Docker the container runtime and orchestration technology  
+3. Docker the open source project (this is now called Moby)  
+
+Docker is an open-source platform for packaging applications into containers: isolated environments that include everything the app needs to run, including code, dependencies, and configuration. The core problem it solves is environment inconsistency. A script that works on your laptop breaks on a server because of a different Python version or a missing library. Docker greatly reduces that inconsistency
+
+
+## Docker architecture
+
+Docker uses a client-server architecture. The Docker client talks to the Docker daemon, which does the heavy lifting of building, running, and distributing your Docker containers
+![Docker architecture diagram — containers, engine, and host](https://docs.docker.com/get-started/images/docker-architecture.webp)
+*Docker architecture*
+
+
+### The Docker client
+The Docker client (docker) is the primary way that many Docker users interact with Docker. When you use commands such as docker run, the client sends these commands to dockerd.
+
+### The Docker daemon
+The Docker daemon (dockerd) listens for Docker API requests and manages Docker objects such as images, containers, networks, and volumes. A daemon can also communicate with other daemons to manage Docker services.
+
+### Docker registries
+A Docker registry stores Docker images. Docker Hub is a public registry that anyone can use, and Docker looks for images on Docker Hub by default. You can even run your own private registry.
+
+When you use the docker pull or docker run commands, Docker pulls the required images from your configured registry. When you use the docker push command, Docker pushes your image to your configured registry.
+
+## Docker components
+
+Docker originally used a monolithic architecture and relied on LXC (Linux Containers) to create lightweight container environments. As it evolved, Docker adopted a more modular architecture, replacing LXC with its own solution, libcontainer, to improve flexibility and cross-platform support. Today, Docker architecture is broken into five components: dockerCLI, dockerd, containerd,containerd-shim and runc
+
+![Diagram 1](https://i.sstatic.net/tZwUP.png)
+
+
+### Docker CLI (docker)
+The command-line client users run (docker run, docker build). It composes user intent into API calls and requests to the Docker daemon. The CLI is a user facing tool for building images, running containers, managing networks/volumes, and interacting with registries.
+
+### dockerd (Docker daemon / engine)
+The long‑running service that implements the Docker API. It receives requests from the CLI (or other clients), manages images, networks, volumes, and coordinates higher‑level container lifecycle actions. dockerd talks to lower‑level runtimes (via containerd), stores image layers, and enforces Docker’s policies and configurations.
+
+### containerd
+A dedicated daemon that manages container lifecycle primitives: pulling/pushing images, storing image content, creating and managing snapshots, and supervising container execution. containerd provides a stable, focused API for runtimes and higher‑level systems (like dockerd) and splits the heavy lifting out of the Docker daemon.
+
+### containerd‑shim
+A small per‑container process launched by containerd that stays running after the container process starts. The shim’s responsibilities:
+- Reparents the container process so the container can run independently of containerd (so containerd can restart without killing containers).  
+- Streams container stdio and exit status back to containerd.  
+- Keeps a minimal state so the runtime can exit while the container continues running.  
+In short: the shim isolates containerd from the container process lifecycle.
+
+### runc
+The low‑level OCI runtime that actually creates and runs the container process using kernel primitives (namespaces, cgroups, chroot/mounts). runc implements the OCI runtime spec: it takes an on‑disk bundle (rootfs + config.json) and uses Linux kernel features to start the process inside the container. containerd typically invokes runc (or another OCI runtime) to perform the final syscall‑level work.
+
+### How they work together
+1. You run a Docker CLI command.  
+2. CLI calls dockerd’s API.  
+3. dockerd delegates image/content and runtime tasks to containerd.  
+4. containerd prepares the image and requests an OCI runtime to start the container.  
+5. containerd invokes runc to create the container process.  
+6. containerd spawns a containerd‑shim for that container so the container can keep running even if containerd restarts.  
+7. runc uses kernel namespaces, cgroups, and mounts to instantiate the container process.
+
+
+## docker request flows
+
+![Diagram 2](https://i.sstatic.net/KanIf.jpg)
+
+The docker request flows over until the container is created.
+
+A user uses the docker CLI to execute a command  
+docker container run -it --name <NAME> <IMAGE>:<TAG>  
+
+The docker client then POSTs the API payload to the correct API docker deamon’s endpoint  
+
+Docker deamon receives instructions and calls containerd to start a new container  
+
+containerd creates an OCI bundle from the Docker image (like we did above in the section “2. runc”)  
+
+containerd tells runc to create a container using the OCI bundle  
+
+runc interfaces with the OS kernel to create a container  
+
+Container process starts as a child process  
+
+runc exits once the container starts  
+
+shim takes over the child process and becomes it’s parent  
+
+Container is running!  
+
+_for more deep about docker component see : https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5_
+
+
+## Docker Image
+
+
+![Diagram 2](https://i.pinimg.com/736x/df/b2/4f/dfb24f83e60e7488c8b50456ad34e4db.jpg)
+
+A container image is an immutable (unchangeable) file that contains everything needed to run an application: code, binaries, libraries, packages and configurations. It ensures the application runs consistently across different environments.
+
+It is built from layered file systems on top of a base image, which allows reuse and helps reduce size and improve performance.
+
+You can think of a container image as a template (like a class or a VM template) used to create running containers.
+
+
+## What is a Dockerfile?
+
+A Dockerfile is a simple text file that contains a set of instructions used to build a Docker image. It defines everything needed to assemble the image: the base system, dependencies, application code, and runtime configuration.
+
+a Dockerfile acts as a **blueprint** for your image. Instead of manually setting up an environment, you describe the steps once, and Docker reproduces them consistently every time.
+
+
+### Basic Structure of a Dockerfile
+
+A Dockerfile is composed of a sequence of instructions. Each instruction performs a specific action and usually creates a new layer in the image.
+
+Common instructions include:
+
+- `FROM` – defines the base image
+- `RUN` – executes commands during the build process
+- `COPY` / `ADD` – copies files into the image
+- `CMD` – specifies the default command to run
+- `ENTRYPOINT` – defines the main executable
+- `ENV` – sets environment variables
+- `WORKDIR` – sets the working directory
+
+
+
+## What Are Docker Image Layers?
+
+
+![Diagram 2](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*Jl97IVi_he8VdHvX9EbWcA.png)
+
+
+A Docker image is not a single monolithic file. It is built as a sequence of **layers**, each representing a set of changes applied to a filesystem. These layers are stacked on top of one another to form the final image.
+
+A useful way to think about a layer is as a **filesystem diff**: it contains only what changed compared to the previous layer. This could include adding files, modifying existing ones, or deleting them.
+
+Each instruction in a Dockerfile typically creates a new layer. Because layers are immutable and cached, Docker can reuse them across builds, which makes image construction efficient and fast.
+
+
+### What Does a Layer Contain?
+
+A layer does not have a fixed type of content. Instead, it can include anything that can exist in a filesystem:
+
+- Application source code
+- Compiled binaries
+- Installed packages and their dependencies
+- Configuration files
+- System libraries
+- File deletions or modifications
+
+In other words, a layer reflects the *result* of executing a single Dockerfile instruction.
+
+It is also important to distinguish between **filesystem layers** and **image metadata**. Some instructions (like `RUN` or `COPY`) create filesystem layers, while others (like `CMD`) define metadata that tells Docker how to run the container.
+
+#### Filesystem Layers vs Image Metadata
+
+When working with Docker images, it is important to understand that not every instruction in a Dockerfile produces the same kind of result. Broadly speaking, Docker image instructions fall into two categories:
+
+- Filesystem layers
+- Image metadata
+
+They serve different purposes and are handled differently by Docker.
+
+
+
+#### Filesystem Layers
+
+Filesystem layers represent **actual changes to the image’s filesystem**. Each of these layers is created when an instruction modifies the contents of the image (files, directories, installed software ...).
+
+#### What creates filesystem layers?
+
+The following instructions typically create filesystem layers:
+
+- `FROM`
+- `RUN`
+- `COPY`
+- `ADD`
+
+#### What do filesystem layers contain?
+
+A filesystem layer is essentially a **diff** (difference) from the previous layer. It can include:
+
+- New files (application code)
+- Installed packages (Python, Node.js, golang ...)
+- System libraries and binaries
+- Modified files
+- Deleted files
+
+Each layer is immutable and stacked on top of the previous ones to form the final filesystem.
+
+
+#### Image Metadata
+
+Image metadata does not affect the filesystem. Instead, it defines how the image behaves when it is run as a container. Define runtime behavior Contains configuration and execution settings
+
+#### What creates image metadata?
+
+Common metadata instructions include:
+
+- `CMD`
+- `ENTRYPOINT`
+- `ENV`
+- `EXPOSE`
+- `WORKDIR`
+- `USER`
+- `LABEL`
+
+#### What does metadata contain?
+
+Metadata defines:
+
+- Default command to run (`CMD`)
+- Executable entrypoint (`ENTRYPOINT`)
+- Environment variables (`ENV`)
+- Default working directory (`WORKDIR`)
+- Exposed network ports (`EXPOSE`)
+- Additional descriptive information (`LABEL`)
+
+
+```dockerfile
+CMD ["python3", "/app/app.py"]
+```
+
+### Breaking Down an Image Layer by Layer
+
+Consider the following Dockerfile:
+
+```dockerfile
+FROM ubuntu:22.04
+RUN apt-get update
+RUN apt-get install -y python3
+COPY app.py /app/app.py
+CMD ["python3", "/app/app.py"]
+```
+
+
+#### 1. Base Layer — `FROM ubuntu:22.04`
+
+This instruction defines the starting point of the image. It pulls a prebuilt image based on Ubuntu 22.04.
+
+This base layer already contains a complete minimal Linux filesystem, including:
+
+- Core system directories (`/bin`, `/usr`, `/lib`, ...)
+- Essential system libraries (such as `libc`)
+- Basic command-line utilities (`bash`, `ls`, `cat`, ...)
+- Package management tools (`apt`)
+
+Everything that follows builds on top of this foundation.
 
 ---
 
-### Design choices
+#### 2. Update Package Index — `RUN apt-get update`
 
-**Virtual Machines vs Docker**
+This step creates a new layer that updates the package manager’s index.
 
-A Virtual Machine emulates a full computer. It runs its own OS kernel on top of a hypervisor (like VirtualBox or VMware), which sits either directly on the hardware (bare-metal) or on top of the host OS (hosted). Each VM is isolated at the hardware level, which makes it heavy — VMs take minutes to boot and consume a lot of memory and disk.
+What this layer adds:
 
-A container is different. It is an isolated process on the host system, using Linux kernel features like namespaces (for isolation) and cgroups (for resource limits). Containers share the host kernel — there is no second OS. This makes them lightweight and they start in seconds. The trade-off is that containers share the kernel, so the isolation is less strict than a VM.
+- Updated package lists stored under `/var/lib/apt/lists/`
+- Metadata required for installing software
 
-For this project, containers make sense because each service is a single process, and the goal is reproducibility and speed, not hardware-level isolation.
-
-**Secrets vs Environment Variables**
-
-Environment variables are the simplest way to pass configuration into a container. They are visible via `docker inspect`, appear in the process environment, and can leak into logs or child processes. For non-sensitive values like `DOMAIN_NAME` or `MYSQL_DATABASE`, they are fine.
-
-Docker secrets are a safer option for sensitive values. A secret is a file stored securely by Docker and mounted inside the container at `/run/secrets/<name>`. It is only accessible to the container that needs it, and it does not appear in `docker inspect` or the environment. This project uses secrets for all passwords.
-
-**Docker Network vs Host Network**
-
-With host networking (`--network host`), the container shares the host's network stack. It has no separate IP, no port mapping, and behaves exactly like a process running directly on the host. This is useful for performance-sensitive tools but removes isolation entirely.
-
-With Docker's bridge networking (used here), each container gets its own IP and is isolated from the host network. A user-defined bridge like `inception` also provides internal DNS, so containers can reach each other by name. Port mapping (`-p 443:443`) is used explicitly to expose only what needs to be public.
-
-This project uses a user-defined bridge network for all services, so they can communicate by name with proper isolation. Only NGINX, Adminer, FTP, Dozzle, and the static website expose ports to the host.
-
-**Docker Volumes vs Bind Mounts**
-
-A bind mount takes a specific path on the host and mounts it into the container. You decide where the data lives. Changes on either side are immediately visible on the other.
-
-A Docker volume is managed by Docker. Docker decides where the data lives on the host (under `/var/lib/docker/volumes/`). Volumes are more portable and work better in production contexts where you do not want to depend on a specific host path.
-
-This project uses a hybrid: volumes defined in `docker-compose.yml` with `driver: local` and `driver_opts` that configure them as bind mounts under `/home/<user>/data/`. This gives named volumes (so Docker manages them) while keeping the data at a predictable host path that survives `docker compose down`.
+No new software is installed yet; this layer only prepares the system for installation.
 
 ---
 
-## Instructions
+#### 3. Install Python — `RUN apt-get install -y python3`
 
-**Requirements:** Docker, Docker Compose, `sudo` access to edit `/etc/hosts`.
+This layer installs Python and its dependencies.
 
-Clone the repository and run:
+What this layer contains:
+
+- Python binary (typically `/usr/bin/python3`)
+- Standard libraries for Python
+- Shared libraries required by Python
+- Additional system packages pulled as dependencies
+
+This is usually one of the heavier layers because it introduces multiple files and dependencies.
+
+---
+
+#### 4. Add Application Code — `COPY app.py /app/app.py`
+
+This instruction copies your application code into the image.
+
+What this layer contains:
+
+- A new directory `/app` (if it does not already exist)
+- The file `app.py` placed at `/app/app.py`
+
+This layer is typically small, but it is the one that changes most frequently during development.
+
+---
+
+#### 5. Runtime Metadata — `CMD ["python3", "/app/app.py"]`
+
+This instruction does not create a filesystem layer.
+
+Instead, it defines metadata for the image:
+
+- The default command to run when a container starts from this image
+
+In this case, it tells Docker to execute:
 
 ```bash
-make
+python3 /app/app.py
+```
+
+
+## Docker containers
+
+![Diagram 2](https://cdn.i-scmp.com/sites/default/files/styles/1020x680/public/d8/images/canvas/2023/03/26/3fc48b13-0f62-4cf1-a634-fbb86a39bc45_29c3a717.jpg?itok=jHXQ9qWp&v=1679800447)
+
+
+A container is the runtime instance of an image. In the same way that we can start a virtual machine (VM) from a virtual machine template, we start one or more containers from a single image. 
+The big difference between a VM and a container is that containers are faster and more lightweight  instead of running a full-blown
+OS like a VM, containers share the OS/kernel with the host they’re running on.
+
+## How Docker Uses the Linux Kernel for Isolation
+
+
+A container is not a virtual machine. A VM emulates an entire computer, including its own kernel. A container is just a regular Linux process but one that has been tricked into thinking it's alone on the machine. That trick is pulled off by three kernel features: **Namespaces**, **cgroups**, and **OverlayFS**. Docker is just a friendly tool that orchestrates all three.
+
+
+
+### Namespaces — the isolation trick
+
+A namespace wraps a global kernel resource and gives a process its own private view of it. The process thinks it owns the world. Six types are used: `PID` (its own process tree), `NET` (its own network stack and ports), `MNT` (its own filesystem view), `UTS` (its own hostname), `IPC` (its own inter process communication), and `USER` (root inside the container, unprivileged on the host).
+
+### cgroups — the resource governor
+
+cgroups enforce hard limits on what a group of processes is allowed to consume. Docker uses them to cap CPU, memory, disk I/O, and process count  so one container can never starve the rest of the machine.
+
+### OverlayFS — the magic filesystem
+
+OverlayFS stacks the read-only image layers under a per-container writable layer. The container sees one unified filesystem. Reads come straight from the shared image at zero cost; writes copy only the modified file into the container's private layer. Delete a container — the image is untouched, ready for the next one.
+
+OverlayFS works with two layers:
+
+lowerdir (read-only) — this is the Docker image. It's immutable. Shared between every container that uses the same image. If 100 containers use the Ubuntu image, they all read from the same lowerdir on disk. Zero duplication.
+
+upperdir (read-write) — this is the container's private "scratch space." It starts empty. When a container modifies a file, the change goes here, not into the lowerdir.
+
+> These three primitives are the entire foundation of containers. Everything else Docker, Podman, Kubernetes is tooling built on top of the same kernel APIs.
+
+
+## Storage in Docker
+
+
+![Diagram 2](https://www.ajfriesen.com/content/images/size/w1200/2024/09/docker-volumes-vs-bind-mounts.png)
+
+
+Containers are ephemeral, when you delete one, everything written inside it is gone. For data that needs to survive, Docker gives you two options: **Bind Mounts** and **Docker Volumes**.
+
+
+### Bind Mount
+
+A bind mount takes a directory on your host machine and mounts it directly into the container. Same files, same bytes seen from two places at once. Edit a file on your host, the container sees it instantly. The container writes a file, it appears on your host instantly.
+
+It's the go to during development: your editor changes code on your machine, the container picks it up without a rebuild.
+
+```bash
+# Basic syntax
+docker run -v /host/path:/container/path image
+
+# Example — mount your source code into a Node container
+docker run -v $(pwd)/src:/app node:20 node /app/server.js
+
+# Read-only — container can read but not write back
+docker run -v /host/config:/etc/app:ro image
+
+```
+
+
+### Docker Volumes
+
+A Docker volume is a directory that Docker itself creates and manages. You give it a name, Docker decides where it lives on the host, under `/var/lib/docker/volumes/<name>/_data`. You never need to think about the host path.
+
+Because Docker owns it, a volume survives container deletions, can be shared between containers, and is portable, a volume named `pgdata` means the same thing on any machine running Docker.
+
+```bash
+# Create a named volume
+docker volume create mydata
+
+# Use it when running a container
+docker run -v mydata:/app/data image
+
+# Example — Postgres database that survives container restarts
+docker run -d -v pgdata:/var/lib/postgresql/data postgres:16
+
+
+# List all volumes
+docker volume ls
+
+# Inspect a volume (shows the host path and connected containers)
+docker volume inspect mydata
+
+# Delete a volume
+docker volume rm mydata
+
+# Delete all unused volumes
+docker volume prune
+```
+
+
+### Bind Mount vs Docker Volume
+
+| | Bind Mount | Docker Volume |
+|---|---|---|
+| Who manages the path | You | Docker |
+| Path on host | You choose | `/var/lib/docker/volumes/…` |
+| Survives `docker rm` | Yes (it's your file) | Yes (Docker keeps it) |
+| Portable across machines | No (path must exist) | Yes (name is the reference) |
+| Best for | Local development | Production data |
+
+
+## Docker networking
+
+![Diagram 2](https://www.docker.com/app/uploads/docker_networking.png)
+
+Docker networking controls how containers talk to each other, to the host, and to the outside world. Different network drivers provide different behaviors.
+
+---
+
+### Bridge network (default)
+
+The bridge driver is Docker's default network for containers.
+
+- **Default attachment:** Every container is attached to the bridge network unless you specify otherwise.
+- **Private IPs:** Containers get a private IP (for example, 172.17.0.x).
+- **Name resolution:** Containers on the default bridge cannot resolve each other by name out of the box (only by IP).
+- **External access:** NAT is used to allow containers to reach the outside world.
+
+Quick inspection:
+
+```bash
+docker network inspect bridge
+```
+
+Typical findings:
+
+- Subnet (commonly 172.17.0.0/16)
+- No automatic DNS resolution between containers
+
+Example (running an Alpine container):
+
+```bash
+docker run -it alpine
+/ # hostname
+46f698a62b0a
+```
+
+You will see the container's hostname (not the host's name), and you will not be able to resolve other containers by name automatically.
+
+---
+
+### Host network
+
+The host network removes Docker's network isolation for a container and makes it use the host's network stack directly.
+
+- **Uses host's network:** The container shares the host's network interfaces.
+- **No separate IP:** The container does not get its own network namespace IP.
+- **No port mapping required:** Ports are the host's ports.
+
+Example:
+
+```bash
+docker run -it --network host alpine
+/ # hostname
+lbob
+```
+
+Inside the container the hostname and network behavior match the host.
+
+---
+
+### None network
+
+The none network disables networking for the container.
+
+- **No IP:** The container receives no network interface.
+- **No communication:** No external or internal networking is possible.
+
+Example:
+
+```bash
+docker run -it --network none alpine
+/ # hostname
+3c7bf6ca77b6
+
+/ # ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8): 56 data bytes
+ping: sendto: Network unreachable
+```
+
+---
+
+### User-defined bridge network
+
+The default bridge has a limitation: containers cannot resolve each other by name. A user-defined bridge fixes that by providing internal DNS, better isolation, and predictable communication.
+
+High-level benefits:
+
+- Internal DNS (containers can reach each other by name)
+- Cleaner isolation than the default bridge
+- Easier to reason about IP ranges and connected containers
+
+1. Create a network:
+
+```bash
+docker network create my_net
+```
+
+2. Inspect the new network:
+
+```bash
+docker network inspect my_net
+```
+
+What to look for:
+
+- `"Subnet"` — the IP range Docker assigned (for example 172.18.0.0/16)
+- `"Containers"` — currently empty until you start containers
+
+3. Run the first container:
+
+```bash
+docker run -dit --name c1 --network my_net busybox sh
+```
+
+What happens:
+
+- `c1` joins `my_net`
+- `c1` receives an IP (e.g., 172.18.0.2)
+- Docker registers `c1` in its internal DNS
+
+Verify:
+
+```bash
+docker network inspect my_net
+```
+
+You should now see `c1` listed in the `Containers` section.
+
+4. Run a second container:
+
+```bash
+docker run -dit --name c2 --network my_net busybox sh
+```
+
+What happens:
+
+- `c2` joins the same user-defined bridge
+- `c2` receives another IP (e.g., 172.18.0.3)
+- Docker registers `c2` in DNS
+
+Verify again:
+
+```bash
+docker network inspect my_net
+```
+
+Both `c1` and `c2` should appear.
+
+5. Enter `c2`:
+
+```bash
+docker exec -it c2 sh
+```
+
+You are now inside `c2` and can treat it like a machine on a small private LAN.
+
+6. Test communication by name (inside `c2`):
+
+```sh
+ping c1
+```
+
+If everything is correct, the ping should succeed because Docker's internal DNS resolves `c1` to its container IP.
+
+---
+
+### Why not use the default bridge?
+
+The default `bridge` network is convenient for quick tests, but it introduces limitations that make it unsuitable for real multi-container applications.
+
+**1. No automatic service discovery (no DNS resolution)**
+
+On the default bridge, containers cannot resolve each other by name. Communication is only possible using IP addresses, which are dynamic and can change when containers restart.
+
+This creates fragile setups where:
+
+- You must manually track container IPs
+- Applications cannot rely on stable hostnames
+- Scaling or restarting containers breaks connectivity
+
+**2. Poor maintainability**
+
+Using IP addresses instead of names makes configurations harder to read and maintain. In real-world systems (APIs, databases, microservices), services are expected to communicate using stable identifiers like `db`, `api`, etc.
+
+
+Modern containerized applications (including those using orchestration tools) rely on:
+
+- Service discovery (DNS)
+- Network segmentation
+- Predictable communication patterns
+
+The default bridge does not provide these features.
+
+---
+
+
+The default bridge network is useful for simple or temporary containers, but it should be avoided for applications where containers need to communicate.
+
+A user-defined bridge network solves these issues by:
+
+- Providing built-in DNS (name-based communication)
+- Offering better isolation
+- Making configurations cleaner and more predictable
+
+---
+
+### Examples
+
+#### Part A: The Problem (Default Network)
+
+```bash
+# Run postgres on default network
+docker run -d --name db-alone -e POSTGRES_PASSWORD=test postgres:15-alpine
+
+# Try to ping by name — this will FAIL
+docker run --name alpine-test alpine ping -c 3 db-alone
+
+# Clean up both
+docker rm -f db-alone alpine-test
+```
+
+Expected result:
+
+```
+ping: bad address 'db-alone'
+```
+
+This failure happens because the default bridge does not provide DNS resolution between containers.
+
+---
+
+#### Part B: The Solution (Custom Network)
+
+```bash
+# Create the custom network
+docker network create grademe-network
+
+# Verify it exists
+docker network ls | grep grademe-network
+
+# Run the PostgreSQL container on the network
+docker run -d \
+  --name grademe-db \
+  --network=grademe-network \
+  -e POSTGRES_PASSWORD=secretpass \
+  postgres:15-alpine
+
+# Run the Alpine container on the same network
+docker run -d \
+  --name grademe-api \
+  --network=grademe-network \
+  alpine sleep 3600
+
+# Ping grademe-db BY NAME from grademe-api (validation command)
+docker exec grademe-api ping -c 3 grademe-db
+```
+
+Expected result:
+
+- The ping succeeds
+- `grademe-db` is resolved automatically via Docker's internal DNS
+
+## Docker Compose
+
+![Diagram 2](https://cdn.hashnode.com/res/hashnode/image/upload/v1682688690767/c991180c-02ab-4eb1-8825-eafa35417c1d.png)
+
+### What is Docker Compose?
+
+Docker Compose is a tool that lets you define, configure, and run multi-container Docker applications. Instead of starting each container manually with `docker run`, Compose automates the process using a single YAML file  `docker-compose.yml`.
+
+With one command, you can start, stop, and manage your entire application stack, including services, networking, and storage.
+
+---
+
+### Why Use Docker Compose?
+
+Docker Compose shines when your application has multiple services that need to work together. A typical web application might include:
+
+- A **web server** container (NGINX or Apache)
+- An **application server** container (.NET service)
+- A **database** container (SQL Server)
+
+---
+
+### Writing Your First Docker Compose File
+
+Let's build a simple multi-container app with two services:
+
+- **app**     :  a .NET application
+- **sqlserver**  : a SQL Server database
+
+```yaml
+version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver_ActivitiesApp
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "YourPassword@123"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_ActivitiesAppVolume:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourPassword@123' -Q 'SELECT 1' -No"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Activities_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - ConnectionStrings__constr=Server=sqlserver,1433;Database=Activities;User Id=sa;Password=YourPassword@123;TrustServerCertificate=True;
+
+volumes:
+  sqlserver_ActivitiesAppVolume:
+```
+
+---
+
+### Breaking Down the Docker Compose File
+
+#### `version: '3.9'`
+Specifies the Docker Compose file format version. Think of it as telling Docker *which syntax rules to follow* when reading your file. Version 3 is the most widely used and supports all modern features like healthchecks and deploy configs.
+
+---
+
+#### `services`
+This is the heart of your Compose file. It lists every container your application needs. Each entry under `services` is an independent container with its own configuration.
+
+---
+
+#### `sqlserver` service
+
+```yaml
+sqlserver:
+  image: mcr.microsoft.com/mssql/server:2022-latest
+  container_name: sqlserver_ActivitiesApp
+  environment:
+    ACCEPT_EULA: "Y"
+    SA_PASSWORD: "YourPassword@123"
+  ports:
+    - "1433:1433"
+  volumes:
+    - sqlserver_ActivitiesAppVolume:/var/opt/mssql
+  healthcheck:
+    test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'YourPassword@123' -Q 'SELECT 1' -No"]
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+```
+
+- **`image`** — Instead of building a custom image, we pull a ready-made one directly from Microsoft's official registry. `2022-latest` means we want SQL Server 2022.
+
+- **`container_name`** — Gives the container a friendly, readable name (`sqlserver_ActivitiesApp`) instead of a random auto-generated one. This makes it easier to identify in logs and commands.
+
+- **`environment`** — Passes configuration values into the container at startup, like environment variables in your OS. SQL Server requires two of them:
+  - `ACCEPT_EULA: "Y"` — You must accept Microsoft's license agreement for SQL Server to start. Setting this to `"Y"` does that automatically.
+  - `SA_PASSWORD` — Sets the password for the `sa` (System Administrator) account, which is SQL Server's built-in admin user.
+
+- **`ports`** — Maps a port on your **host machine** to a port inside the **container**, in the format `"host:container"`.
+  - `"1433:1433"` means: *"When I connect to port 1433 on my machine, forward it to port 1433 inside the container."* Port 1433 is SQL Server's default port.
+
+- **`volumes`** — Mounts a persistent storage location into the container.
+  - `sqlserver_ActivitiesAppVolume:/var/opt/mssql` means: *"Store everything SQL Server saves at `/var/opt/mssql` inside the container into a named volume called `sqlserver_ActivitiesAppVolume`."*
+  - Without this, **all your database data would be lost** every time the container stops or restarts.
+
+- **`healthcheck`** — Tells Docker how to verify the container is truly *ready*, not just running. SQL Server takes a few seconds to initialize after the container starts, so we use a healthcheck to make sure it's accepting connections before the app tries to connect.
+  - `test` — The command Docker runs to check health. Here it uses `sqlcmd` to run a simple `SELECT 1` query. If it succeeds, the container is healthy.
+  - `interval: 10s` — Run the health check every 10 seconds.
+  - `timeout: 5s` — If the check takes longer than 5 seconds, consider it failed.
+  - `retries: 5` — After 5 consecutive failures, mark the container as unhealthy.
+  - `start_period: 30s` — Give the container 30 seconds to boot up before starting the health checks. This prevents false failures during slow startup.
+
+---
+
+#### `app` service
+
+```yaml
+app:
+  build:
+    context: .
+    dockerfile: Dockerfile
+  container_name: Activities_app
+  ports:
+    - "8080:8080"
+  depends_on:
+    sqlserver:
+      condition: service_healthy
+  environment:
+    - ConnectionStrings__constr=Server=sqlserver,1433;Database=Activities;User Id=sa;Password=YourPassword@123;TrustServerCertificate=True;
+```
+
+- **`build`** — Instead of pulling a pre-built image, Docker builds one from your local code.
+  - `context: .` — Use the current directory as the build context (where Docker looks for your source files).
+  - `dockerfile: Dockerfile` — Use the file named `Dockerfile` in that directory to build the image.
+
+- **`container_name`** — Names the container `Activities_app` for easy identification.
+
+- **`ports`** — `"8080:8080"` maps port 8080 on your machine to port 8080 inside the container. You can access the app at `http://localhost:8080`.
+
+- **`depends_on`** — Controls startup order. Here it tells Docker: *"Don't start the app until `sqlserver` is healthy."*
+  - `condition: service_healthy` — This is stricter than a basic `depends_on`. It waits for the SQL Server healthcheck to pass, not just for the container to start. Without this, the app might crash trying to connect to a database that isn't ready yet.
+
+- **`environment`** — Passes the database connection string to the .NET app. Let's break it down:
+  - `Server=sqlserver,1433` — Connect to the host named `sqlserver` (which is the service name defined above — Docker's internal DNS resolves it automatically) on port `1433`.
+  - `Database=Activities` — Connect to a database called `Activities`.
+  - `User Id=sa` — Log in as the `sa` admin user.
+  - `Password=YourPassword@123` — The same password set in the `sqlserver` service.
+  - `TrustServerCertificate=True` — Skip SSL certificate validation. Common in local/dev environments where no real certificate is configured.
+
+---
+
+#### `volumes` 
+
+```yaml
+volumes:
+  sqlserver_ActivitiesAppVolume:
+```
+
+This **declares** the named volume used by the `sqlserver` service. Docker won't create a volume automatically unless it's registered here. Think of it as a *"create this storage bucket if it doesn't exist yet"* instruction. The actual data lives on your host machine, managed by Docker, and survives container restarts.
+
+### Using Docker Compose
+
+#### 1. Build and Start All Services
+
+```bash
+docker-compose up --build
 ```
 
 This will:
-1. Create `/home/<user>/data/mariadb` and `/home/<user>/data/wordpress` on the host
-2. Add `127.0.0.1 ajelloul.42.fr` to `/etc/hosts` if not already present
-3. Build and start all containers in detached mode
+- Build images defined with a `build` directive
+- Pull any missing images from Docker Hub
+- Create and start all containers
 
-**Other targets:**
+#### 2. Stop the Containers
 
 ```bash
-make down     # Stop and remove containers
-make clean    # Stop containers, prune Docker system, remove data directories
-make re       # clean + all
+docker-compose stop
 ```
 
-Before running, make sure the `secrets/` directory exists at the project root with the following files:
+Stops running containers without removing them.
 
-```
-secrets/
-  db_password.txt
-  db_root_password.txt
-  credentials.txt
-  ftp_password.txt
+#### 3. Remove Everything
+
+```bash
+docker-compose down
 ```
 
-And a `.env` file in `srcs/` with at minimum:
+Stops and removes all containers, networks, and volumes.
 
-```
-DOMAIN_NAME=ajelloul.42.fr
-MYSQL_DATABASE=...
-MYSQL_USER=...
-WP_ADMIN_USER=...
-WP_ADMIN_EMAIL=...
-WP_USER=...
-WP_USER_EMAIL=...
-FTP_USER=...
-USER=<your system username>
+#### 4. Scale a Service
+
+```bash
+docker-compose up --scale app=3
 ```
 
-Once running, the services are accessible at:
-
-| Service   | URL                          |
-|-----------|------------------------------|
-| WordPress | https://ajelloul.42.fr       |
-| Adminer   | http://localhost:8888        |
-| Dozzle    | http://localhost:9090        |
-| Website   | http://localhost:8081        |
-| FTP       | ftp://localhost:21           |
+Runs 3 instances of the `app` service — great for scaling stateless services.
 
 ---
 
-## Resources
+### Docker Compose Commands 
 
-**Docker and containers**
+| Command | Description |
+|---|---|
+| `docker-compose up` | Build, create, and start all services |
+| `docker-compose down` | Stop and remove all services, networks, and volumes |
+| `docker-compose stop` | Stop running services without removing containers |
+| `docker-compose build` | Build service images defined in the Compose file |
+| `docker-compose logs` | View logs from all running services |
 
-- [A Learning Path for Container Fundamentals](https://iximiuz.com/en/posts/container-learning-path/) — good starting point covering the full container ecosystem
-- [Docker Engine Architecture Under the Hood](https://medium.com/@yeldos/docker-engine-architecture-under-the-hood-741512b340d5) — explains how the Docker daemon, containerd, and runc work together
-- [Docker Deep Dive — Nigel Poulton](https://ebooks.karbust.me/Technology/Docker%20Deep%20Dive%20-%20Nigel%20Poulton.pdf) — a practical book covering core Docker concepts
-- [Docker Interview Q&A](https://www.dataquest.io/blog/docker-interview-questions-and-answers/) — covers a wide range of conceptual and practical topics
-- [Deep Dive into runc and OCI Specifications](https://mkdev.me/posts/the-tool-that-really-runs-your-containers-deep-dive-into-runc-and-oci-specifications) — explains what actually runs containers at the OS level
-- [How Docker Actually Works — The Hard Way](https://medium.com/@furkan.turkal/how-does-docker-actually-work-the-hard-way-a-technical-deep-diving-c5b8ea2f0422) — a low-level technical breakdown of namespaces, cgroups, and the container lifecycle
-
-**NGINX and TLS**
-
-- [What is NGINX?](https://medium.com/@sami.alesh/what-is-nginx-7db76b2e79f8) — a clear overview of NGINX and its use cases
-- [The NGINX Handbook](https://www.freecodecamp.org/news/the-nginx-handbook/) — comprehensive guide covering configuration, proxying, and TLS setup
-- [What is SSL?](https://stackchief.com/blog/What%20is%20SSL%3F) — explains TLS/SSL certificates and how HTTPS works
-
-**AI usage**
-
-AI (Claude) was used during this project for:
-- Understanding Docker internals and clarifying documentation — how things work under the hood (namespaces, cgroups, the OCI stack)
-- Helping create the setup and entrypoint bash scripts, then reviewing and questioning the output before using it
-- Helping write and structure this README
-
-All AI-generated content was reviewed, tested, and understood before being used. Where something wasn't clear, it was discussed with peers or reworked until it made sense.

@@ -154,4 +154,3 @@ volumes:
       type:   none
       o:      bind
       device: /home/${USER}/data/wordpress
-  

@@ -14,6 +14,8 @@ RUN chmod +x /usr/local/bin/maria-setup.sh \
     && chown -R mysql:mysql /var/run/mysqld \
     && chown -R mysql:mysql /var/lib/mysql
 
+WORKDIR /etc/mysql
+
 EXPOSE 3306
 
 ENTRYPOINT ["/usr/local/bin/maria-setup.sh"]
