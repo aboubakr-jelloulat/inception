@@ -810,3 +810,109 @@ documents the port
 tells Docker:
 “this container listens on this port”
 
+
+
+Your Computer (FileZilla)
+        │
+        ▼
+ Docker Host
+        │
+        ├── Port 21
+        │      FTP commands/login
+        │
+        └── Ports 30000-30009
+               file transfer
+                    │
+                    ▼
+           FTP Container
+                    │
+                    ▼
+           /var/www/html
+                    │
+                    ▼
+           Shared Docker Volume
+                    │
+                    ▼
+          WordPress sees files instantly
+
+
+You only see ports 30000–30009 when a client is actively using FTP data transfer.
+
+Right now you see:
+
+0.0.0.0:21 LISTEN
+
+That is ONLY the control port.
+
+💥 Important concept (this is the key)
+
+FTP passive ports are:
+
+❌ NOT permanently open
+✅ opened dynamically only during file operations
+
+📦 What you are missing
+
+You are only doing:
+
+container running
+no FileZilla connected
+no upload/download/list
+
+So:
+
+👉 ports 30000–30009 are NOT used yet
+
+🔥 When DO 30000–30009 appear?
+
+They appear ONLY when you do actions like:
+
+1. List directory
+ls
+2. Upload file
+put file.txt
+3. Download file
+get file.txt
+🧪 HOW TO PROVE IT (evaluation trick)
+Step 1: open monitoring
+
+Inside FTP container:
+
+watch ss -tulnp
+Step 2: connect with FileZilla
+host: localhost or 127.0.0.1
+port: 21
+user: ftpuser
+Step 3: DO something
+
+Example:
+
+upload image
+refresh directory
+Step 4: you will see
+
+Suddenly:
+
+ESTAB  172.18.0.2:30001
+ESTAB  172.18.0.2:30003
+
+or LISTEN temporarily:
+
+0.0.0.0:30000
+0.0.0.0:30001
+🧠 WHY YOU DON’T SEE THEM NOW
+
+Because:
+
+Condition	Result
+FTP server started	only port 21
+no client activity	no passive ports
+FileZilla idle	no data channel
+
+
+test : ```docker exec -it ftp bash ``` and upload a files ```watch "ss -tan | grep 30" ```
+
+
+
+
+

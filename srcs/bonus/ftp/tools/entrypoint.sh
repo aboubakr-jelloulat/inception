@@ -5,11 +5,13 @@ mkdir -p /var/run/vsftpd/empty
 
 FTP_USER=${FTP_USER:-ftpuser}
 
-# Read password from secret file if set, else fallback to env var
+# Read password from secret file 
+
 if [ -f "$FTP_PASSWORD_FILE" ]; then
     FTP_PASS=$(cat "$FTP_PASSWORD_FILE")
 else
-    FTP_PASS=${FTP_PASS:-ftppass}
+    echo "FTP password file not found!"
+    exit 1
 fi
 
 # Create user if it doesn't exist
