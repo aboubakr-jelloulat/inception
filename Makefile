@@ -11,7 +11,7 @@ setup:
 		echo "127.0.0.1 ajelloul.42.fr" | sudo tee -a /etc/hosts
 
 down:
-	$(COMPOSE) down
+	$(COMPOSE) down -v
 
 clean: down
 	docker system prune -af

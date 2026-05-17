@@ -125,6 +125,7 @@ services:
     build: ./bonus/website
     container_name: website
     image: website
+    restart: unless-stopped
     ports:
       - "8081:8081"  
 
@@ -142,6 +143,7 @@ networks:
 
 volumes:
   mariadb:
+    name: mariadb
     driver: local
     driver_opts:
       type:   none
@@ -149,6 +151,7 @@ volumes:
       device: /home/${USER}/data/mariadb
 
   wordpress:
+    name: wordpress
     driver: local
     driver_opts:
       type:   none

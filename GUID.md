@@ -620,6 +620,19 @@ Connection settings:
 
 **`unless-stopped`** is the standard choice for Inception. Containers recover from crashes and system reboots, but stay stopped if you explicitly stop them yourself.
 
+#### Test : Docker daemon restart
+
+
+1. Restart Docker service:
+```
+sudo systemctl restart docker
+```
+Then:
+```
+docker ps
+```
+✔ all containers with restart policy will come back automatically
+
 **`on-failure`** can accept a retry limit:
 
 ```yaml
